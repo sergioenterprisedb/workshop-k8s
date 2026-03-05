@@ -14,17 +14,7 @@ k3d --version
 sudo usermod -aG docker ec2-user
 
 # Install K3d cluster
-sg docker -c "k3d cluster create ${K3D_CLUSTER}"
-
-sg docker -c "k3d node create dc1-node1 -c ${K3D_CLUSTER}"
-sg docker -c "k3d node create dc1-node2 -c ${K3D_CLUSTER}"
-sg docker -c "k3d node create dc1-node3 -c ${K3D_CLUSTER}"
-
-# Share k8s config file
-sudo mkdir -p /usr/local/share/k8s
-sudo chmod 755 /usr/local/share/k8s
-sg docker -c "k3d kubeconfig get ${K3D_CLUSTER} | sudo tee /usr/local/share/k8s/k3d-config > /dev/null"
-sudo chmod 644 /usr/local/share/k8s/k3d-config
+./install_k3d.sh
 
 # Install kubectl
 arch=$(uname -m)

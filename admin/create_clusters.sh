@@ -1,6 +1,6 @@
 #!/bin/bash
 
-. ./config
+. ./config.sh
 
 # Install clusters
 for (( i=1; i<=$TOTAL_USERS; i++ ))

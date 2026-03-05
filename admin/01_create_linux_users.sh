@@ -63,6 +63,7 @@ do
         # Alias gets
         echo "alias gc='/home/${USERNAME}/cnpg-hands-on/get_clusters.sh'" >> /home/${USERNAME}/.bash_profile
         echo "alias gp='/home/${USERNAME}/cnpg-hands-on/get_pods.sh'" >> /home/${USERNAME}/.bash_profile
+        echo "alias gs='/home/${USERNAME}/cnpg-hands-on/get_status.sh'" >> /home/${ENV_USER}/.bash_profile
         
         # Kubeconfig k3d
         echo "export KUBECONFIG=/usr/local/share/k8s/k3d-config" > /etc/profile.d/k3d.sh
