@@ -35,7 +35,7 @@ export kubectl_cnp="kubectl-cnpg"
 # │            Barman            │
 # ╰──────────────────────────────╯
 
-export cert_manager_version="v1.18.2"
+export cert_manager_version="v1.19.4"
 export plugin_barman_version="v0.11.0"
 export barman_object_name="object-store"
 export barman_retention_policy="30d"
