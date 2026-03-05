@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version1=`${kubectl_cnp} version | awk '{ print $2 }' | awk -F":" '{ print $2}'`
+version1=`kubectl-cnpg version | awk '{ print $2 }' | awk -F":" '{ print $2}'`
 version2=${version1%??}
 
 # Uninstall operator
