@@ -1,12 +1,12 @@
-apiVersion: v1
-data:
-  password: dU4zaTFIaDBiWWJDYzRUeVZBYWNCaG1TemdxdHpxeG1PVmpBbjBRSUNoc0pyU211OVBZMmZ3MnE4RUtLTHBaOQ==
-  username: cG9zdGdyZXM=
-kind: Secret
-metadata:
-  name: cluster-example-superuser
-type: kubernetes.io/basic-auth
----
+#apiVersion: v1
+#data:
+#  password: dU4zaTFIaDBiWWJDYzRUeVZBYWNCaG1TemdxdHpxeG1PVmpBbjBRSUNoc0pyU211OVBZMmZ3MnE4RUtLTHBaOQ==
+#  username: cG9zdGdyZXM=
+#kind: Secret
+#metadata:
+#  name: cluster-example-superuser
+#type: kubernetes.io/basic-auth
+#---
 apiVersion: postgresql.cnpg.io/v1
 kind: Cluster
 metadata:
@@ -44,6 +44,13 @@ spec:
     size: $postgres_storage
   walStorage:
     size: $postgres_wal_storage
+  
+  # Scheduling: Ensure pods spread across your 3 disks/nodes
+  #affinity:
+  #  nodeSelector:
+  #    role: postgres-node
+  #  podAntiAffinityType: required # Strict: won't start 2 pods on 1 node
+  #  topologyKey: kubernetes.io/hostname
 
   resources:
     requests:
