@@ -1,0 +1,41 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: ${cluster_major_upgrade}
+spec:
+  instances: 1
+  imageName: ${postgres_major_upgrade_image}
+
+  storage:
+    size: 2Gi
+
+  bootstrap:
+    initdb:
+      import:
+        type: microservice
+        databases:
+          - app
+        source:
+          externalCluster: ${cluster_name}
+
+  externalClusters:
+    - name: ${cluster_name}
+      connectionParameters:
+        # Use the correct IP or host name for the source database
+        host: ${cluster_name}-rw
+        user: postgres
+        dbname: postgres
+      password:
+        name: ${cluster_name}-superuser
+        key: password
+
+  resources:
+    requests:
+      memory: "${postgres_memory}"
+      cpu: "${postgres_cpu}"
+    limits:
+      memory: "${postgres_memory}"
+      cpu: "${postgres_cpu}"
+
+  #monitoring:
+  #  enablePodMonitor: true

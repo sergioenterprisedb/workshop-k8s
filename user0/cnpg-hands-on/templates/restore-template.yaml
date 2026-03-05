@@ -1,0 +1,48 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: $cluster_restore
+spec:
+  instances: 1
+  imageName: $postgres_default_image
+  imagePullPolicy: IfNotPresent
+  bootstrap:
+    recovery:
+      source: source
+  plugins:
+  - name: barman-cloud.cloudnative-pg.io
+    isWALArchiver: true
+    parameters:
+      # Backup Object Store (push, read-write)
+      barmanObjectName: $barman_object_name
+  externalClusters:
+  - name: source
+    plugin:
+      name: barman-cloud.cloudnative-pg.io
+      parameters:
+        barmanObjectName: $barman_object_name
+        serverName: $cluster_name
+
+  storage:
+    size: $postgres_storage
+  walStorage:
+    size: $postgres_wal_storage
+  tablespaces:
+  - name: idxtbs
+    storage:
+      size: $postgres_idx_storage
+  - name: tmptbs
+    temporary: true
+    storage:
+      size: $postgres_tmp_storage
+
+  #monitoring:
+  #  enablePodMonitor: true
+
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "0.4"
+    limits:
+      memory: "1Gi"
+      cpu: "0.4"

@@ -1,0 +1,30 @@
+apiVersion: v1
+data:
+  password: dU4zaTFIaDBiWWJDYzRUeVZBYWNCaG1TemdxdHpxeG1PVmpBbjBRSUNoc0pyU211OVBZMmZ3MnE4RUtLTHBaOQ==
+  username: cG9zdGdyZXM=
+kind: Secret
+metadata:
+  name: cluster-example-superuser
+type: kubernetes.io/basic-auth
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: $cluster_name-using-catalog
+spec:
+  instances: $postgres_instances
+  imageCatalogRef:
+    apiGroup: postgresql.cnpg.io
+    kind: ClusterImageCatalog
+    name: postgresql
+    major: 18
+  storage:
+    size: 1Gi
+
+  resources:
+    requests:
+      memory: "${postgres_memory}"
+      cpu: "${postgres_cpu}"
+    limits:
+      memory: "${postgres_max_memory}"
+      cpu: "${postgres_max_cpu}"
