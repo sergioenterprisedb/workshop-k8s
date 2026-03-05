@@ -43,6 +43,17 @@ sudo mv cmctl /usr/local/bin/
 # Install htop
 sudo dnf install -y htop
 
+# bat install
+
+## 1. Install Rust and Cargo
+sudo dnf install -y rust cargo
+
+## 2. Install bat
+cargo install --locked bat
+
+## 3. Add Cargo's bin to your PATH (if not already there)
+echo 'export PATH="$HOME/.cargo/bin:$PATH"' >> ~/.bashrc
+source ~/.bashrc
 
 # Install rich
 sudo dnf install python3 python3-pip -y
