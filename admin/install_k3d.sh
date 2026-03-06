@@ -28,6 +28,9 @@ kubectl label node k3d-workshop-agent-2 role=postgres-node
 # Ports
 #sg docker -c"k3d cluster edit test --port-add '9001:9001@loadbalancer'"
 
+# Check open ports
+docker ps --filter "name=serverlb" --format "table {{.Names}}\t{{.Ports}}"
+
 # Share k8s config file
 sudo mkdir -p /usr/local/share/k8s
 sudo chmod 755 /usr/local/share/k8s
