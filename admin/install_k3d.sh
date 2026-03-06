@@ -42,5 +42,5 @@ docker ps --filter "name=serverlb" --format "table {{.Names}}\t{{.Ports}}"
 sudo mkdir -p /usr/local/share/k8s
 sudo chmod 755 /usr/local/share/k8s
 #sg docker -c "k3d kubeconfig get ${K3D_CLUSTER} | sudo tee /usr/local/share/k8s/k3d-config > /dev/null"
-cp ~/.kube/config /usr/local/share/k8s/k3d-config
+cp /usr/local/share/k8s/k3d-config ~/.kube/config
 sudo chmod 644 /usr/local/share/k8s/k3d-config
