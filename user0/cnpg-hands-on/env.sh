@@ -66,20 +66,8 @@ if [ "$object_storage_type" = "minio" ]; then
   print_info "Object Storage type        : ${yellow}${object_storage_type}\n"
   print_info "Object Storage bucket      : ${yellow}${object_storage_bucket}\n"
   print_info "Destination path           : ${yellow}${s3_destination_path}\n"
-  print_info "Endpoint                   : ${yellow}${s3_endpoint_url}\n"
-elif [ "$object_storage_type" = "aws" ]; then
-  print_info "Object Storage type        : ${yellow}${object_storage_type}\n"
-  print_info "Object Storage bucket      : ${yellow}${object_storage_bucket}\n"
-  print_info "Destination path           : ${yellow}${s3_destination_path}\n"
-  print_info "Endpoint                   : ${yellow}${s3_endpoint_url}\n"
-elif [ "$object_storage_type" = "azure" ]; then
-  print_info "Object Storage type        : ${yellow}${object_storage_type}\n"
-  print_info "Container name             : ${yellow}${CONTAINER_NAME}\n"
-  print_info "Resource Group             : ${yellow}${RESOURCE_GROUP}\n"
-  print_info "Azure connection string    : ${yellow}$( [ -n "${AZURE_CONNECTION_STRING}" ] && echo "***" || echo "MISSING" )${nc}\n"
-  print_info "Azure Storage Account      : ${yellow}$( [ -n "${AZURE_STORAGE_ACCOUNT}" ] && echo "***" || echo "MISSING" )${nc}\n"
-  print_info "Azure Storage Key          : ${yellow}$( [ -n "${AZURE_STORAGE_KEY}" ] && echo "***" || echo "MISSING" )${nc}\n"
-  print_info "Azure Storage Sas Token    : ${yellow}$( [ -n "${AZURE_STORAGE_SAS_TOKEN}" ] && echo "***" || echo "MISSING" )${nc}\n"
+  print_info "Minio server               : ${yellow}${minio_server}\n"
+  print_info "Minio port                 : ${yellow}${minio_port}\n"
 fi
 
 print_info "\n"

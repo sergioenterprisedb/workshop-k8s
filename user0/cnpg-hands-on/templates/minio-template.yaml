@@ -6,7 +6,7 @@ spec:
   retentionPolicy: "${barman_retention_policy}"
   configuration:
     destinationPath: s3://${s3_bucket}/
-    endpointURL: http://${local_ip}:${minio_port}
+    endpointURL: http://${minio_server}:${minio_port}
     s3Credentials:
       accessKeyId:
         name: minio-creds

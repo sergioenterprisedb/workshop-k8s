@@ -100,12 +100,10 @@ if [ "$object_storage_type" = "minio" ]; then
   export ACCESS_SESSION_TOKEN=""
   export s3_bucket="backups"
   export minio_port=9000
-  #export local_ip=`ifconfig en0 inet | awk '/inet6/ {next} /inet/ {print $2}'`
-  #export local_ip="10.0.2.15"  # vagrant
-  export local_ip="10.0.2.165" # ec2
+  export minio_server=`kubectl get pods -l app=minio -o jsonpath='{.items[*].status.podIP}' -A`
+  #export local_ip="10.0.2.165" # ec2
   export object_storage_bucket="${bucket}"
   export s3_destination_path="s3://${bucket}/"
-  #export s3_endpoint_url="https://minio-api-minio.apps.cluster-cx9nq.dynamic.redhatworkshops.io"
-  export s3_endpoint_url="http://10.0.2.15:9000"
+  #export s3_endpoint_url="http://10.0.2.15:9000"
 
 fi
