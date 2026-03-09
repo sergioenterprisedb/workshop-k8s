@@ -46,11 +46,11 @@ spec:
     size: $postgres_wal_storage
   
   # Scheduling: Ensure pods spread across your 3 disks/nodes
-  #affinity:
-  #  nodeSelector:
-  #    role: postgres-node
-  #  podAntiAffinityType: required # Strict: won't start 2 pods on 1 node
-  #  topologyKey: kubernetes.io/hostname
+  affinity:
+    nodeSelector:
+      role: postgres-node
+    podAntiAffinityType: required # Strict: won't start 2 pods on 1 node
+    topologyKey: kubernetes.io/hostname
 
   resources:
     requests:
