@@ -53,3 +53,38 @@ UUID=8b063de1-bca5-4098-8b0d-b187ed249464 /mnt/disk1 xfs defaults,nofail 0 2
 UUID=fb3797ac-c105-4746-b20e-2cdadeb79b8e /mnt/disk2 xfs defaults,nofail 0 2
 UUID=641f4581-8c0c-4559-9771-3aa6c9a69a0c /mnt/disk3 xfs defaults,nofail 0 2
 ```
+# Install
+Install main components:
+- Docker
+- k3d
+- kubectl
+
+And other software:
+-  bat
+- htop
+- cmclt
+- rich
+
+With ec2-user:
+```
+install_EC2.sh
+```
+Install minio:
+```
+cd ~/workshop-k8s/admin/minio
+install_minio.sh
+```
+
+Install Prometheus and Grafana:
+```
+cd ~/workshop-k8s/admin/prometheus
+./install_prometheus.sh
+```
+
+Install linux users (by default 10 in `config.sh`file):
+```
+cd ~/workshop-k8s/admin/
+./create_linux_users.sh
+```
+
+
