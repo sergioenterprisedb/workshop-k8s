@@ -8,4 +8,5 @@ do
   username="user$i"
   sudo su - ${username} -c "kubectl delete backup  cluster-${username}-backup-test"
   sudo su - ${username} -c "kubectl delete cluster cluster-${username}"
+  sudo su - ${username} -c "kubectl delete podmonitors.monitoring.coreos.com cluster-${username}"
 done
