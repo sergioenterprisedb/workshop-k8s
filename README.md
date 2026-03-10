@@ -116,6 +116,7 @@ After installation, you can access to MinIO with:
 - User: `admin`
 - Password: `password`
 - URL: `http://<ec2_public_ip>:9010/`
+
 ![MinIO](./images/minio.jpg)
 
 ## Install Prometheus and Grafana
@@ -135,6 +136,7 @@ Install CloudNativePG dashboard:
 - Load dashboard
 
 A new dashboard CloudNativePG is loaded.
+
 ![Grafana](./images/grafana.jpg)
 
 
