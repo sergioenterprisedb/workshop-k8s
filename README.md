@@ -40,6 +40,11 @@ EC2 Instance
 ```
 ![Architecture](./images/ec2-k8s-cloudnativepg-architecture.jpg)
 
+# Types of users
+We have 2 type of users for this workshop:
+- Admin users: create the AWS infrastructure and install basic components
+- DBA/DevOps/K8s admin users
+
 # Features Demonstrated
 
 This repository demonstrates the following operational capabilities:
@@ -87,11 +92,6 @@ To be able to access to the EC2 VM, Grafana and Minio, it is necessary to create
   - Type: Custom TCP
   - Port: 9010
 
-# Types of users
-We have 2 kind of users for this workshop:
-- Admin users
-- DBA/DevOps/K8s admin users
-
 ## Admin users
 ### Installation
 Install main components:
@@ -106,9 +106,15 @@ And other software:
 - cmclt
 - rich
 
+First of all, clone this project in the machine:
+```
+sudo dnf install -y git
+git clone https://github.com/sergioenterprisedb/workshop-k8s.git
+```
+
 With ec2-user:
 ```
-cd workshop-k8s/admin/
+cd ~/workshop-k8s/admin/
 ./install_EC2.sh
 ```
 ### Install minio
