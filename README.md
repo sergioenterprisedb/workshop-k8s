@@ -87,8 +87,13 @@ To be able to access to the EC2 VM, Grafana and Minio, it is necessary to create
   - Type: Custom TCP
   - Port: 9010
 
+# Types of users
+We have 2 kind of users for this workshop:
+- Admin users
+- DBA/DevOps/K8s admin users
 
-# Installation
+## Admin users
+### Installation
 Install main components:
 - Docker
 - k3d
@@ -106,7 +111,7 @@ With ec2-user:
 cd workshop-k8s/admin/
 ./install_EC2.sh
 ```
-## Install minio
+### Install minio
 Execute:
 ```
 cd ~/workshop-k8s/admin/minio
@@ -119,7 +124,7 @@ After installation, you can access to MinIO with:
 
 ![MinIO](./images/minio.jpg)
 
-## Install Prometheus and Grafana
+### Install Prometheus and Grafana
 Execute:
 ```
 cd ~/workshop-k8s/admin/prometheus
@@ -140,17 +145,81 @@ A new dashboard CloudNativePG is loaded.
 ![Grafana](./images/grafana.jpg)
 
 
-## Install Shellinabox
+### Install Shellinabox
 Shell In A Box implements a web server that can export arbitrary command line tools to a web based terminal emulator. This emulator is accessible to any JavaScript and CSS enabled web browser and does not require any additional browser plugins.
 ```
 ./install_shellinabox.sh
 ```
 
-## Create linux users
+### Create linux users
 By default, 10 users are created in the Linux VM. The file `config.sh` contain the configuration:
 ```
 cd ~/workshop-k8s/admin/
 ./create_linux_users.sh
 ```
+### Postgres cluster tasks
+The workshop admin have to connect with ec2-user and exeute these commands:
+```
+cd ~/workshop-k8s/user0/cnpg-hands-on/
 
+./01_install_plugin.sh
+./02_install_operator.sh
+./03_check_operator_installed.sh
+./04_install_barman_plugin.sh
+```
 
+### Admin task list
+- [ ] Install EC2 VM
+- [ ] Install Minio
+- [ ] Prometheus/Grafana
+- [ ] Shellinabox
+- [ ] Create Linux users
+- [ ] Kubernetes Plugin install
+- [ ] Operator install
+- [ ] Barman plugin install
+
+## DBA/DevOps/K8s admin users
+The users (user1, user2, etc) have to connect to the VM. How to connect?
+- With ssh: `ssh -i "workshop-key.pem" ec2-user@ec2-xxx-xxx-xxx-xxx.eu-west-3.compute.amazonaws.com`
+- With Shellinabox: http://<virtual-machine-ip>:4200
+- User: `user[1..N]`
+- Password: `password[1..N]`
+
+And execute these commands to test the features:
+```
+./06_get_cluster_config_file.sh
+./07_install_cluster.sh
+./08_show_status.sh
+./09_insert_data.sh
+./10_backup_cluster.sh
+./11_backup_describe.sh
+./12_restore_cluster.sh
+./13_check_restore.sh
+./14_promote.sh
+./15_failover.sh
+./16_minor_upgrade.sh
+./18_scale_out.sh
+./19_scale_down.sh
+./20_fencing.sh
+./21_hibernation.sh
+./22_major_upgrade_by_copy.sh
+./23_verify_data_migrated.sh
+./24_major_upgrade_in_place.sh
+./25_verify_major_upgrade.sh
+```
+
+### DBA/DevOps/K8s admin users task list
+- [ ] Install Postgres cluster
+- [ ] Insert data
+- [ ] Show Postgres cluster status
+- [ ] Backup Postgres cluster
+- [ ] Restore Postgres cluster
+- [ ] Promote
+- [ ] Failover
+- [ ] Minor Postgres cluster upgrade
+- [ ] Postgres cluster scale out
+- [ ] Postgres cluster scale down
+- [ ] Fencing
+- [ ] Hibernation
+- [ ] Mayor Postgres cluster upgrade by copy
+- [ ] Mayor Postgres cluster upgrade in place
