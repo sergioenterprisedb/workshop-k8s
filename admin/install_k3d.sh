@@ -12,7 +12,7 @@
 sg docker -c "k3d cluster create ${K3D_CLUSTER} \
   --servers 1 \
   --agents 3 \
-  -v '/mnt/xvda:/var/lib/rancher/k3s/storage@server:0' \
+  -v '/:/var/lib/rancher/k3s/storage@server:0' \
   -v '/mnt/disk1:/var/lib/rancher/k3s/storage@agent:0' \
   -v '/mnt/disk2:/var/lib/rancher/k3s/storage@agent:1' \
   -v '/mnt/disk3:/var/lib/rancher/k3s/storage@agent:2'"

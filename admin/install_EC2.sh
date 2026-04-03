@@ -8,13 +8,11 @@ sudo systemctl start docker
 sudo systemctl enable docker
 
 # Install K3d
+sudo dnf -y install wget
 wget -q -O - https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | bash
 k3d --version
 
 sudo usermod -aG docker ec2-user
-
-# Install K3d cluster
-./install_k3d.sh
 
 # Install kubectl
 arch=$(uname -m)
@@ -26,10 +24,13 @@ chmod +x ./kubectl
 sudo mv ./kubectl /usr/bin/kubectl
 echo 'source <(kubectl completion bash)' | tee -a ~/.bashrc /home/ec2-user/.bashrc > /dev/null
 
+# Install K3d cluster
+./install_k3d.sh
+
 # K3d nodes labels
-kubectl label node k3d-dc1-node1-0 datacenter=dc1
-kubectl label node k3d-dc1-node2-0 datacenter=dc1
-kubectl label node k3d-dc1-node3-0 datacenter=dc1
+kubectl label node k3d-workshop-agent-0 datacenter=dc1
+kubectl label node k3d-workshop-agent-1 datacenter=dc1
+kubectl label node k3d-workshop-agent-2 datacenter=dc1
 
 # Install cmctl
 curl -fsSL -o cmctl https://github.com/cert-manager/cmctl/releases/latest/download/cmctl_linux_${KUBECTL_ARCH}
@@ -61,6 +62,6 @@ echo "alias k=kubectl" >> /home/ec2-user/.bash_profile
 echo 'complete -o default -F __start_kubectl k' >> /home/ec2-user/.bash_profile
 
 # Alias gets
-echo "alias gc='/home/ec2-user/workshop-k8s/admin/get_clusters.sh'" >> /home/${ENV_USER}/.bash_profile
-echo "alias gp='/home/ec2-user/workshop-k8s/admin/get_pods.sh'" >> /home/${ENV_USER}/.bash_profile
-echo "alias gs='/home/ec2-user/workshop-k8s/admin/get_status.sh'" >> /home/${ENV_USER}/.bash_profile
+#echo "alias gc='/home/ec2-user/workshop-k8s/admin/get_clusters.sh'" >> /home/${ENV_USER}/.bash_profile
+#echo "alias gp='/home/ec2-user/workshop-k8s/admin/get_pods.sh'" >> /home/${ENV_USER}/.bash_profile
+#echo "alias gs='/home/ec2-user/workshop-k8s/admin/get_status.sh'" >> /home/${ENV_USER}/.bash_profile

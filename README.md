@@ -67,18 +67,21 @@ This repository demonstrates the following operational capabilities:
 
 # Prerequisites
 This workshop needs an AWS EC2 instance with this configuration:
-- CPUs: Minimum 8 cpu's
-- RAM: 32GB
+- OS: AWS Linux (Ubuntu)
+- Instance type: Tested with t2.2xLarge instance (8 vCPUs and 32GiB RAM)
+- Network: create new security group 
+- CPUs: Minimum 8 vCPUs
+- RAM: 32GiB
 - Storage:
   - 4 disks with this configuration:
   - Type: gp3
   - IOPS: 6000
   - Throughput: 300
 - lsblk:
-  - xvda: 50GB
-  - xvdb: 50GB
-  - xvdc: 50GB
-  - xvdd: 50GB
+  - xvda: 50GB Mount: /
+  - xvdb: 50GB Mount: /mnt/disk1
+  - xvdc: 50GB Mount: /mnt/disk2
+  - xvdd: 50GB Mount: /mnt/disk3
 
 ## Security groups
 To be able to access to the EC2 VM, Grafana and Minio, it is necessary to create some security group rules:
@@ -94,25 +97,34 @@ To be able to access to the EC2 VM, Grafana and Minio, it is necessary to create
 
 ## Admin users
 ### Installation
-Install main components:
+This software will be installed:
 - Docker
 - k3d
 - kubectl
 - helm
-
-And other software:
--  bat
+- bat
 - htop
 - cmclt
 - rich
 
-First of all, clone this project in the machine:
+Connect to the AWS and check the security group. Make sure your 
+IP address is included in the security group:
+```
+./admin/get_external_ip.sh 
+xxx.xxx.xxx.xxx
+```
+Connect to the EC2 instance to install the software:
+```
+ssh -i "<your_pem_key>.pem" ec2-user@<your_instance>.compute.amazonaws.com
+```
+
+And with `ec2_user` user, clone this project in the machine:
 ```
 sudo dnf install -y git
 git clone https://github.com/sergioenterprisedb/workshop-k8s.git
 ```
 
-With ec2-user:
+With `ec2-user`user:
 ```
 cd ~/workshop-k8s/admin/
 ./install_EC2.sh
