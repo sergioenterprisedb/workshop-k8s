@@ -1,6 +1,5 @@
 #!/bin/bash
 
-. ./config.sh
 . ../../user0/cnpg-hands-on/commands.sh
 
 # Install helm

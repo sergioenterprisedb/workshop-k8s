@@ -2,8 +2,11 @@
 
 sudo yum install -y git openssl-devel pam-devel zlib-devel autoconf automake libtool
 git clone https://github.com/shellinabox/shellinabox.git && cd shellinabox
-cd shellinabox/
 autoreconf -i
+
+# Fix bug
+sed -i '1020s/b->next_bio/BIO_next(b)/' libhttp/ssl.c
+
 ./configure --disable-ssl && make
 
 # Config
