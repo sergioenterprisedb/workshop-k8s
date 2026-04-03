@@ -130,6 +130,10 @@ Connect to the EC2 instance to install the software:
 ```
 ssh -i "<your_pem_key>.pem" ec2-user@<your_instance>.compute.amazonaws.com
 ```
+Or execute:
+```
+./connect_ec2.sh
+```
 
 And with `ec2_user` user, clone this project in the machine:
 ```
@@ -216,8 +220,8 @@ cd ~/workshop-k8s/user0/cnpg-hands-on/
 
 ## DBA/DevOps/K8s admin users
 The users (user1, user2, etc) have to connect to the VM. How to connect?
-- With ssh: `ssh -i "workshop-key.pem" ec2-user@ec2-xxx-xxx-xxx-xxx.eu-west-3.compute.amazonaws.com`
 - With Shellinabox: http://<virtual-machine-ip>:4200
+- With ssh: `ssh -i "workshop-key.pem" ec2-user@ec2-xxx-xxx-xxx-xxx.<aws-region>.compute.amazonaws.com`
 - User: `user[1..N]`
 - Password: `password[1..N]`
 
