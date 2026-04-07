@@ -98,11 +98,17 @@ To be able to access to the EC2 VM, Grafana and Minio, it is necessary to create
 ## How to create the instance
 Prerequisites: AWS cli
 How to install AWS cli: [link](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html)
-
-In your laptop, execute this script:
+In your laptop, configure AWS variables:
+```
+export AWS_ACCESS_KEY_ID="<your-key-id>"
+export AWS_SECRET_ACCESS_KEY="<your-secret-access-key>"
+export AWS_SESSION_TOKEN="<your-token>"
+```
+And execute this script:
 ```
 ./create_EC2_stack.sh
 ```
+
 ## Cleanup EC2 environment
 ```
 ./delete_EC2_stack.sh
