@@ -20,6 +20,7 @@ k3d --version
 sudo usermod -aG docker ec2-user
 
 # Install kubectl
+sudo dnf install bash-completion -y
 arch=$(uname -m)
 
 [ "$arch" = "x86_64" ] && KUBECTL_ARCH="amd64"
@@ -31,6 +32,7 @@ echo 'source <(kubectl completion bash)' | tee -a ~/.bashrc /home/ec2-user/.bash
 
 # Install K3d cluster
 ./install_k3d.sh
+sudo chown -R $(whoami) /usr/local/share/k8s/
 
 # K3d nodes labels
 kubectl label node k3d-workshop-agent-0 datacenter=dc1
@@ -62,7 +64,7 @@ sudo dnf install python3 python3-pip -y
 sudo pip3 install rich-cli
 rich --version
 
-# Vagrant user profile config
+# User profile config
 echo "alias k=kubectl" >> /home/ec2-user/.bash_profile
 echo 'complete -o default -F __start_kubectl k' >> /home/ec2-user/.bash_profile
 

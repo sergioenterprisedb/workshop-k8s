@@ -9,27 +9,31 @@ chmod 700 get_helm.sh
 
 # Prints
 print_info "\nInstalling prometheus...\n"
-print_command "\nhelm repo add prometheus-community \
-  https://prometheus-community.github.io/helm-charts\n"
-
-helm repo add prometheus-community \
-  https://prometheus-community.github.io/helm-charts
-
+print_command "\nhelm repo add prometheus-community https://prometheus-community.github.io/helm-charts\n"
 print_command "\nhelm upgrade --install \
   -f https://raw.githubusercontent.com/cloudnative-pg/cloudnative-pg/main/docs/src/samples/monitoring/kube-stack-config.yaml \
   prometheus-community \
   prometheus-community/kube-prometheus-stack\n"
 
+
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+helm repo update
+
+# Create namespace
+#kubectl create namespace monitoring
+
 # Prometheus install
 helm upgrade --install \
   -f https://raw.githubusercontent.com/cloudnative-pg/cloudnative-pg/main/docs/src/samples/monitoring/kube-stack-config.yaml \
   prometheus-community \
-  prometheus-community/kube-prometheus-stack
+  prometheus-community/kube-prometheus-stack \
+  --namespace default
 
 # Wait for Prometheus operator
-print_info "Waiting for Prometheus Operator to be ready..."
+print_info "Waiting for Prometheus Operator to be ready...\n"
 kubectl rollout status deployment/prometheus-community-kube-operator \
   --timeout=300s
+
 # Check status
 kubectl --namespace default get pods -l "release=prometheus-community"
 kubectl --namespace default get secrets prometheus-community-grafana -o jsonpath="{.data.admin-password}" | base64 -d ; echo
@@ -38,11 +42,3 @@ kubectl --namespace default get secrets prometheus-community-grafana -o jsonpath
 
 # Install service
 kubectl apply -f grafana.yaml
-
-
-# Uninstall prometheus
-kubectl get crd
-kubectl delete crd prometheuses.monitoring.coreos.com
-kubectl delete crd prometheusagents.monitoring.coreos.com
-kubectl delete crd prometheusrules.monitoring.coreos.com
-kubectl get crd

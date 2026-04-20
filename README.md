@@ -1,3 +1,8 @@
+
+[![Generic badge](https://img.shields.io/badge/Version-1.0-<COLOR>.svg)](https://shields.io/)
+[![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://GitHub.com/Naereen/StrapDown.js/graphs/commit-activity)
+![Maintainer](https://img.shields.io/badge/maintainer-sergio.romera@enterprisedb.com-blue)
+
 # Workshop: CloudNativePG Demo on EC2 (k3d + Docker)
 
 This repository demonstrates how to run and operate a **PostgreSQL high-availability cluster on Kubernetes** using **CloudNativePG / EDB Postgres for Kubernetes Operator**.
@@ -43,7 +48,7 @@ EC2 Instance
 # Types of users
 We have 2 type of users for this workshop:
 - Admin users: create the AWS infrastructure and install basic components
-- DBA/DevOps/K8s admin users
+- DBA users: Manage PostgreSQL clusters with CloudNativePG operator.
 
 # Features Demonstrated
 
@@ -174,7 +179,7 @@ cd ~/workshop-k8s/admin/prometheus
 After installation, you can access to MinIO with:
 - User: `admin`
 - Password: `prom-operator`
-- URL: http://<ec2_public_ip>:3010/login
+- URL: `http://<ec2_public_ip>:3010/login`
 
 Install CloudNativePG dashboard:
 - In Grafana, go to Dashboards -> New -> Import
@@ -224,9 +229,9 @@ cd ~/workshop-k8s/user0/cnpg-hands-on/
 - [ ] Operator install
 - [ ] Barman plugin install
 
-## DBA/DevOps/K8s admin users
+## DBA users
 The users (user1, user2, etc) have to connect to the VM. How to connect?
-- With Shellinabox: http://<virtual-machine-ip>:4200
+- With Shellinabox: `http://<your_EC2_ip>:4200`
 - With ssh: `ssh -i "workshop-key.pem" ec2-user@ec2-xxx-xxx-xxx-xxx.<aws-region>.compute.amazonaws.com`
 - User: `user[1..N]`
 - Password: `password[1..N]`
@@ -254,7 +259,7 @@ And execute these commands to test the features:
 ./25_verify_major_upgrade.sh
 ```
 
-### DBA/DevOps/K8s admin users task list
+### DBA users task list
 - [ ] Install Postgres cluster
 - [ ] Insert data
 - [ ] Show Postgres cluster status
