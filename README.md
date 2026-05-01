@@ -155,7 +155,7 @@ git clone https://github.com/sergioenterprisedb/workshop-k8s.git
 With `ec2-user`user:
 ```
 cd ~/workshop-k8s/admin/
-./install_EC2.sh
+./install_ec2.sh
 ```
 ### Install minio
 Execute:
