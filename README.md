@@ -1,276 +1,199 @@
 
-[![Generic badge](https://img.shields.io/badge/Version-1.0-<COLOR>.svg)](https://shields.io/)
+[![Generic badge](https://img.shields.io/badge/Version-1.1-blue.svg)](https://shields.io/)
 [![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://GitHub.com/Naereen/StrapDown.js/graphs/commit-activity)
 ![Maintainer](https://img.shields.io/badge/maintainer-sergio.romera@enterprisedb.com-blue)
+![Maintainer](https://img.shields.io/badge/maintainer-raphael.chir@enterprisedb.com-blue)
 
 # Workshop: CloudNativePG Demo on EC2 (k3d + Docker)
 
-This repository demonstrates how to run and operate a **PostgreSQL high-availability cluster on Kubernetes** using **CloudNativePG / EDB Postgres for Kubernetes Operator**.
+This repository demonstrates how to run and operate a **PostgreSQL high-availability cluster on Kubernetes** using the **CloudNativePG / EDB Postgres for Kubernetes** operator.
 
-The demo environment runs on:
+The demo environment runs on a single AWS EC2 host and includes:
 
-- **AWS EC2**
-- **Docker**
-- **k3d (K3s in Docker)**
-- **MinIO (S3 compatible storage)** for backups
+- **AWS EC2** + **Docker** + **k3d** (K3s in Docker): 1 server + 3 agents
+- **CloudNativePG / EDB Postgres for Kubernetes** operator
+- **MinIO** (S3-compatible object storage) for backups
+- **Prometheus + Grafana** monitoring stack (with a CloudNativePG dashboard)
+- **ttyd + tmux** web terminal for participants
 
-It walks through common **Day-1 and Day-2 operations** for PostgreSQL in Kubernetes.
-This demos have been built to run in a multiuser linux environment.
+It walks through common **Day-1 and Day-2 operations** for PostgreSQL on Kubernetes, and is built to run as a **multi-user** environment: one VM hosts `user1`..`userN`, each driving its own cluster in its own namespace.
 
 ---
 
-# Architecture
+## Architecture
 ```
 EC2 Instance
 │
 ├─ Docker
 │
-├─ k3d Kubernetes cluster
+├─ k3d Kubernetes cluster (1 server + 3 agents)
 │   │
 │   ├─ CloudNativePG / EDB Postgres for Kubernetes Operator
 │   ├─ MinIO (S3 Compatible Object Storage)
-│   └─ Grafana/Prometheus
+│   └─ Prometheus + Grafana
 │
-├─ User1
-│   └─ PostgreSQL Cluster
-│       ├─ Primary
-│       ├─ Replica 1
-│       └─ Replica 2
-...
-├─ UserN
+├─ ttyd web terminal (per-user shell access)
+│
+├─ User1 .. UserN
 │   └─ PostgreSQL Cluster
 │       ├─ Primary
 │       ├─ Replica 1
 │       └─ Replica 2
 ```
-![Architecture](./images/ec2-k8s-cloudnativepg-architecture.jpg)
+![Architecture](./docs/images/ec2-k8s-cloudnativepg-architecture.jpg)
 
-# Types of users
-We have 2 type of users for this workshop:
-- Admin users: create the AWS infrastructure and install basic components
-- DBA users: Manage PostgreSQL clusters with CloudNativePG operator.
+## User roles
+- **Admin** — provisions the AWS infrastructure and installs the platform.
+- **DBA** — manages PostgreSQL clusters with the CloudNativePG operator.
 
-# Features Demonstrated
-
-This repository demonstrates the following operational capabilities:
+## Features demonstrated
 
 | Who   | Feature                       | Description                                                      |
 |-------|-------------------------------|------------------------------------------------------------------|
-| Admin | Kubernetes Plugin Install     | Install `kubectl-cnpg` plugins for PostgreSQL cluster management |
-| Admin | Operator Install              | Deploy **CloudNativePG operator**                                |
+| Admin | Plugin & Operator Install     | Install `kubectl-cnpg` and deploy the **CloudNativePG operator** |
 | DBA   | PostgreSQL Cluster Deployment | Create a highly available PostgreSQL cluster                     |
 | DBA   | Insert Data                   | Demonstrate workload operations                                  |
-| DBA   | Switchover                    | Promote a replica manually                                       |
-| DBA   | Failover                      | Automatic promotion when primary fails                           |
-| DBA   | Backup                        | Backup cluster to **MinIO S3 storage**                           |
-| DBA   | Recovery                      | Restore cluster from backup                                      |
+| DBA   | Switchover / Failover         | Promote a replica manually, or on primary failure               |
+| DBA   | Backup / Recovery             | Back up to **MinIO S3** and restore from backup                 |
 | DBA   | Scaling                       | Scale replicas up and down                                       |
 | DBA   | Rolling Updates               | Minor and major PostgreSQL upgrades                              |
-| DBA   | Fencing                       | Isolate a node to prevent split brain                            |
-| DBA   | Monitoring                    | Use Grafana to monitor cluster health                            |
-| DBA   | Operator Upgrade              | Upgrade Kubernetes operator                                      |
+| DBA   | Fencing / Hibernation         | Isolate or pause a cluster                                       |
+| DBA   | Monitoring                    | Use Grafana to monitor cluster health                           |
 
-# Create AWS EC2 instance 
-This workshop needs an AWS EC2 instance with this configuration:
-- OS: AWS Linux (Ubuntu)
-- Instance type: Tested with t2.2xLarge instance (8 vCPUs and 32GiB RAM)
-- Network: create new security group 
-- CPUs: Minimum 8 vCPUs
-- RAM: 32GiB
-- Storage:
-  - 4 disks with this configuration:
-  - Type: gp3
-  - IOPS: 6000
-  - Throughput: 300
-- lsblk:
-  - xvda: 50GB Mount: /
-  - xvdb: 50GB Mount: /mnt/disk1
-  - xvdc: 50GB Mount: /mnt/disk2
-  - xvdd: 50GB Mount: /mnt/disk3
+---
 
-## Security groups
-To be able to access to the EC2 VM, Grafana and Minio, it is necessary to create some security group rules:
-- SSH
-  - Type: SSH
-  - Port: 22
-- Grafana
-  - Protocol: Custom TCP
-  - Port: 3010
-- Minio
-  - Type: Custom TCP
-  - Port: 9010
+## Prerequisites
 
-## How to create the instance
-Prerequisites: AWS cli
-How to install AWS cli: [link](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html)
-In your laptop, configure AWS variables:
-```
-export AWS_ACCESS_KEY_ID="<your-key-id>"
-export AWS_SECRET_ACCESS_KEY="<your-secret-access-key>"
-export AWS_SESSION_TOKEN="<your-token>"
-```
-And execute this script:
-```
-./create_EC2_stack.sh
+On your local machine:
+- **AWS CLI v2** ([install guide](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html)), authenticated:
+  ```bash
+  export AWS_ACCESS_KEY_ID="<your-key-id>"
+  export AWS_SECRET_ACCESS_KEY="<your-secret-access-key>"
+  export AWS_SESSION_TOKEN="<your-token>"      # if using temporary credentials
+  ```
+- `bash` and `ssh`.
+
+## 1. Configure
+
+All settings live in a single root [`config.sh`](./config.sh). At minimum, set
+your IP so the security group lets you in:
+
+```bash
+REGION="<aws-region>"
+INSTANCE_TYPE="<instance-type>"
+TAG_NAME="<tag-name>"
+KEY_NAME="<key-name>"
+MY_CIDR="<my-cidr>"     # your public IP/32 — run `curl ipinfo.io/ip` to find it
 ```
 
-## Cleanup EC2 environment
-```
-./delete_EC2_stack.sh
+> The full list of parameters (users, MinIO/Grafana credentials, ports, …) is
+> documented in [`CONTRIBUTING.md`](./CONTRIBUTING.md).
+
+## 2. Provision
+
+Everything is driven by the single entry point [`provision.sh`](./provision.sh):
+
+```bash
+# Infrastructure only — then install the platform yourself (see step 3):
+./provision.sh --infra-only
+
+# Or full automation — infrastructure + platform installed via EC2 user-data:
+./provision.sh --full --verbose
+
+# Tear everything down (destroys all resources tagged $TAG_NAME):
+./provision.sh --delete
 ```
 
-## Admin users
-### Installation
-This software will be installed:
-- Docker
-- k3d
-- kubectl
-- helm
-- bat
-- htop
-- cmclt
-- rich
+`create.sh` provisions a `t2.2xlarge` (Amazon Linux 2023, 8 vCPU / 32 GiB) with
+**4 gp3 disks** (root + `/mnt/disk1..3` for k3d storage) and a security group
+opening ports **22** (SSH, restricted to `MY_CIDR`), **3010** (Grafana), **9010**
+(MinIO console), and **4200** (ttyd). It also writes an SSH shortcut:
 
-Connect to the AWS and check the security group. Make sure your 
-IP address is included in the security group:
-```
-./admin/get_external_ip.sh 
-xxx.xxx.xxx.xxx
-```
-Connect to the EC2 instance to install the software:
-```
-ssh -i "<your_pem_key>.pem" ec2-user@<your_instance>.compute.amazonaws.com
-```
-Or execute:
-```
-./connect_ec2.sh
+```bash
+./infra/connect_ec2.sh
 ```
 
-And with `ec2_user` user, clone this project in the machine:
-```
+> If SSH times out, check that your current IP is still within `MY_CIDR`
+> (`curl ipinfo.io/ip`) and update `config.sh`.
+
+## 3. Install the platform (Admin)
+
+If you used `--full`, this is already done automatically — skip to step 4.
+
+Otherwise, SSH into the instance, clone the repo, and run the installer:
+
+```bash
 sudo dnf install -y git
-git clone https://github.com/sergioenterprisedb/workshop-k8s.git
+git clone https://github.com/sergioenterprisedb/workshop-k8s-cnpg.git ~/workshop-k8s-cnpg
+cd ~/workshop-k8s-cnpg/platform
+./install.sh            # add --verbose to stream output
 ```
 
-With `ec2-user`user:
-```
-cd ~/workshop-k8s/admin/
-./install_ec2.sh
-```
-### Install minio
-Execute:
-```
-cd ~/workshop-k8s/admin/minio
-./install_minio.sh
-```
-After installation, you can access to MinIO with:
-- User: `admin`
-- Password: `password`
-- URL: `http://<ec2_public_ip>:9010/`
+`install.sh` runs the four setup steps in order, fully automated:
 
-![MinIO](./images/minio.jpg)
+1. **System** — docker, kubectl, helm, k3d, cmctl, and CLI tools
+2. **Cluster** — k3d cluster, node labels, **Prometheus/Grafana** + **MinIO** (Helm)
+3. **Terminal** — ttyd + tmux web terminal
+4. **Users** — creates `user1`..`userN` and distributes the lab + kubeconfig
 
-### Install Prometheus and Grafana
-Execute:
-```
-cd ~/workshop-k8s/admin/prometheus
-./install_prometheus.sh
-```
-After installation, you can access to MinIO with:
-- User: `admin`
-- Password: `prom-operator`
-- URL: `http://<ec2_public_ip>:3010/login`
+Then prepare CloudNativePG (admin-only, once):
 
-Install CloudNativePG dashboard:
-- In Grafana, go to Dashboards -> New -> Import
-- Import this [CloudnativePG Grafana dashboard file](https://github.com/cloudnative-pg/grafana-dashboards/blob/main/charts/cluster/grafana-dashboard.json)
-- Load dashboard
-- DS_PROMETHEUS: Select a prometheus data source: Prometheus
-- Import
-
-A new dashboard CloudNativePG is loaded.
-
-![Grafana](./images/grafana.jpg)
-
-
-### Install Shellinabox
-Shell In A Box implements a web server that can export arbitrary command line tools to a web based terminal emulator. This emulator is accessible to any JavaScript and CSS enabled web browser and does not require any additional browser plugins.
-```
-cd ~/workshop-k8s/admin/shellinabox
-./install_shellinabox.sh
-```
-Verify the connection to the environment:
-- URL: `http://<your_EC2_ip>:4200`
-
-### Create linux users
-By default, 10 users are created in the Linux VM. The file `config.sh` contain the configuration:
-```
-cd ~/workshop-k8s/admin/
-sudo ./create_linux_users.sh
-```
-### Postgres cluster tasks
-The workshop admin have to connect with ec2-user and exeute these commands:
-```
-cd ~/workshop-k8s/user0/cnpg-hands-on/
-
+```bash
+cd ~/workshop-k8s-cnpg/lab/cnpg-hands-on
 ./01_install_plugin.sh
 ./02_install_operator.sh
 ./03_check_operator_installed.sh
 ./04_install_barman_plugin.sh
 ```
 
-### Admin task list
-- [ ] Install EC2 VM
-- [ ] Install Minio
-- [ ] Prometheus/Grafana
-- [ ] Shellinabox
-- [ ] Create Linux users
-- [ ] Kubernetes Plugin install
-- [ ] Operator install
-- [ ] Barman plugin install
+### Access
+| Service       | URL                          | Credentials          |
+|---------------|------------------------------|----------------------|
+| Grafana       | `http://<EC2_IP>:3010`       | `admin` / `password` |
+| MinIO console | `http://<EC2_IP>:9010`       | `admin` / `password` |
+| Web terminal  | `http://<EC2_IP>:4200`       | `user[N]` / `password[N]` |
 
-## DBA users
-The users (user1, user2, etc) have to connect to the VM. How to connect?
-- With Shellinabox: `http://<your_EC2_ip>:4200`
-- With ssh: `ssh -i "workshop-key.pem" ec2-user@ec2-xxx-xxx-xxx-xxx.<aws-region>.compute.amazonaws.com`
-- User: `user[1..N]`
-- Password: `password[1..N]`
+![Grafana](./docs/images/grafana.jpg)
+![MinIO](./docs/images/minio.jpg)
 
-And execute these commands to test the features:
-```
-./06_get_cluster_config_file.sh
-./07_install_cluster.sh
-./08_show_status.sh
-./09_insert_data.sh
-./10_backup_cluster.sh
+> Optional: import the [CloudNativePG Grafana dashboard](https://github.com/cloudnative-pg/grafana-dashboards/blob/main/charts/cluster/grafana-dashboard.json)
+> via Grafana → Dashboards → New → Import (data source: Prometheus).
+
+## 4. Run the scenarios (DBA)
+
+Each participant connects to the **web terminal** (`http://<EC2_IP>:4200`) or via
+SSH, logs in as `user[N]` / `password[N]`, and lands in `~/cnpg-hands-on` with
+their kube context already set.
+
+Run the numbered scripts in order:
+
+```bash
+./06_get_cluster_config_file.sh     # render the cluster manifest
+./07_install_cluster.sh             # create the HA PostgreSQL cluster
+./08_show_status.sh                 # watch cluster status
+./09_insert_data.sh                 # insert demo data
+./10_backup_cluster.sh              # backup to MinIO
 ./11_backup_describe.sh
-./12_restore_cluster.sh
+./12_restore_cluster.sh             # restore from backup
 ./13_check_restore.sh
-./14_promote.sh
-./15_failover.sh
-./16_minor_upgrade.sh
-./18_scale_out.sh
-./19_scale_down.sh
-./20_fencing.sh
-./21_hibernation.sh
-./22_major_upgrade_by_copy.sh
+./14_promote.sh                     # switchover
+./15_failover.sh                    # failover
+./16_minor_upgrade.sh               # minor upgrade
+./18_scale_out.sh                   # scale to 4 replicas
+./19_scale_down.sh                  # scale to 2 replicas
+./20_fencing.sh on|off              # fencing
+./21_hibernation.sh on|off          # hibernation
+./22_major_upgrade_by_copy.sh       # major upgrade (by copy)
 ./23_verify_data_migrated.sh
-./24_major_upgrade_in_place.sh
+./24_major_upgrade_in_place.sh      # major upgrade (in place)
 ./25_verify_major_upgrade.sh
 ```
 
-### DBA users task list
-- [ ] Install Postgres cluster
-- [ ] Insert data
-- [ ] Show Postgres cluster status
-- [ ] Backup Postgres cluster
-- [ ] Restore Postgres cluster
-- [ ] Promote
-- [ ] Failover
-- [ ] Minor Postgres cluster upgrade
-- [ ] Postgres cluster scale out
-- [ ] Postgres cluster scale down
-- [ ] Fencing
-- [ ] Hibernation
-- [ ] Mayor Postgres cluster upgrade by copy
-- [ ] Mayor Postgres cluster upgrade in place
+---
+
+## Contributing
+
+Repository structure, code conventions, the standard script template,
+dependencies, and known issues are documented in
+[`CONTRIBUTING.md`](./CONTRIBUTING.md). AI-assistant rules live in
+[`AGENTS.md`](./AGENTS.md).

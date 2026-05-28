@@ -1,11 +1,20 @@
 #!/bin/bash
+# -----------------------------------------------------------------------------
+# platform/scripts/get_pods.sh
+# Prints pods across all namespaces as a rich table (optional name filter).
+# -----------------------------------------------------------------------------
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/../../config.sh"
+
+# Ensure relative paths resolve correctly regardless of invocation directory.
+cd "$(dirname "${BASH_SOURCE[0]}")"
 
 if ! command -v rich &> /dev/null; then
   echo "rich not installed"
   exit 1
 fi
 
-filter=$1
+# Default to empty so an absent argument does not trip `set -u` from config.sh.
+filter="${1:-}"
 tempfile=$(mktemp)
 echo "Namespace,Name,Status,Role,Pod IP,Node" > $tempfile
 
@@ -18,7 +27,7 @@ if [ -z "$filter" ]; then
 else
   kubectl get pods -A \
     -o jsonpath="{range .items[*]}{.metadata.namespace},{.metadata.name},{.status.phase},{.metadata.labels.role},{.status.podIP},{.spec.nodeName}{'\n'}{end}" | \
-    grep -E "NAME|─|━|$filter" >> "$tempfile"
+    grep -E "NAME|─|━|$filter" >> "$tempfile" || true
 fi
 
 rich --csv "$tempfile"
