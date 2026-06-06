@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+export GLOBAL_LOG_FILE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/../logs/session_test.log"
 source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/logger.sh"
 
 init_logger
@@ -9,6 +10,8 @@ log_success "Success message"
 log_warn    "Warning message"
 log_error   "Error message"
 log_debug   "Debug hidden (DEBUG=false)"
+# Test trap ERR — commande volontairement incorrecte
+ls /chemin/qui/nexiste/pas
 
 DEBUG=true
 log_debug   "Debug visible (DEBUG=true)"

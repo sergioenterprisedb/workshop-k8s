@@ -8,7 +8,10 @@
 
 # Configuration (callers may override before or after sourcing).
 : "${DEBUG:=false}"
-: "${LOG_DIR:=./logs}"
+# Resolve project root from logger.sh own location (lib/ is one level below root).
+_LOGGER_LIB_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+_LOGGER_PROJECT_ROOT="$(cd "${_LOGGER_LIB_DIR}/.." && pwd)"
+: "${LOG_DIR:="${_LOGGER_PROJECT_ROOT}/logs"}"
 : "${LOG_FILE:=}"
 : "${GLOBAL_LOG_FILE:=}"
 : "${LOG_COLORS:=true}"
@@ -55,9 +58,10 @@ _log_emit() {
 
   local level="$1"; shift
   local message="$*"
-  local ts_term ts_file
-  ts_term="$(date +%H:%M:%S)"
-  ts_file="$(date +'%Y-%m-%d %H:%M:%S')"
+  local ts
+  ts="$(date +'%Y-%m-%d %H:%M:%S')"
+  local ts_term="${ts:11:8}"   # extracts HH:MM:SS from the full timestamp
+  local ts_file="${ts}"
 
   if _logger_use_color; then
     local color reset
@@ -99,9 +103,19 @@ die() {
 
 # Route piped output (one line per log entry) through the logger.
 log_stream() {
-  local line
+  local line level message
   while IFS= read -r line; do
-    _log_emit "INFO" "${line}"
+    # Detect lines already formatted by logger.sh:
+    # format: [HH:MM:SS] [LEVEL]   message
+    # or:     [YYYY-MM-DD HH:MM:SS] [LEVEL] message
+    if printf '%s' "${line}" | grep -qE '^\[([0-9]{2}:[0-9]{2}:[0-9]{2}|[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2})\] \[(SECTION|SUCCESS|WARN|ERROR|DEBUG|INFO)\]'; then
+      level="$(printf '%s' "${line}" | grep -oE 'SECTION|SUCCESS|WARN|ERROR|DEBUG|INFO' | head -1)"
+      message="$(printf '%s' "${line}" | sed 's/^[^]]*\] \[[^]]*\] *//')"
+      _log_emit "${level}" "${message}"
+    else
+      # Raw line (stderr, external command output) — emit as INFO
+      _log_emit "INFO" "${line}"
+    fi
   done
   return 0
 }
@@ -129,6 +143,30 @@ init_logger() {
     [ -f "${GLOBAL_LOG_FILE}" ] || : > "${GLOBAL_LOG_FILE}"
   fi
 
+  export LOG_FILE
+  export GLOBAL_LOG_FILE
+
+  # Capture stderr to the log file(s) while keeping it visible on the terminal.
+  # Strip ANSI codes before writing to files so logs stay plain text.
+  if [ -n "${GLOBAL_LOG_FILE:-}" ]; then
+    exec 2> >(
+      while IFS= read -r line; do
+        printf '%s\n' "${line}" >&2
+        printf '%s\n' "${line}" \
+          | sed 's/\x1b\[[0-9;]*m//g' \
+          | tee -a "${LOG_FILE}" "${GLOBAL_LOG_FILE}" >/dev/null
+      done
+    )
+  else
+    exec 2> >(
+      while IFS= read -r line; do
+        printf '%s\n' "${line}" >&2
+        printf '%s\n' "${line}" \
+          | sed 's/\x1b\[[0-9;]*m//g' >> "${LOG_FILE}"
+      done
+    )
+  fi
+
   _LOGGER_START_TIME="$(date +%s)"
   trap '_logger_trap $? "$BASH_COMMAND" "$LINENO"' ERR
 }
@@ -141,6 +179,9 @@ finalize_logger() {
   start="${_LOGGER_START_TIME:-${end}}"
   duration=$(( end - start ))
   log_info "Total duration: $(( duration / 60 ))m $(( duration % 60 ))s"
+
+  # Flush and restore stderr
+  exec 2>&1
 
   trap - ERR
 }
