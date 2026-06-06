@@ -9,6 +9,26 @@ cluster in its own namespace.
 
 For AI-assistant rules and coding patterns, see [`AGENTS.md`](./AGENTS.md).
 
+## Platform Requirements
+
+| Platform | Requirement | Notes |
+|----------|-------------|-------|
+| macOS    | bash 3.2+ (default) | All scripts compatible |
+| Linux    | bash 4.4+ | Ubuntu 20.04+ recommended |
+| Windows  | WSL2 required | Ubuntu 20.04+ recommended inside WSL2 |
+
+### Windows Setup
+Native PowerShell and CMD are not supported.
+Install WSL2 with Ubuntu before contributing:
+1. Enable WSL2: `wsl --install`
+2. Install Ubuntu from the Microsoft Store
+3. All commands must be run from inside the WSL2 terminal
+
+### AWS CLI
+AWS CLI v2 must be configured with valid credentials before running
+any provisioning command:
+  aws configure
+
 ## Project structure
 
 ```
