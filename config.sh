@@ -42,7 +42,7 @@ export SUBNET_CIDR="10.0.1.0/24"
 # REPOSITORY
 # =============================================================================
 export WORKSHOP_REPO_URL="https://github.com/sergioenterprisedb/workshop-k8s-cnpg.git"
-export WORKSHOP_REPO_BRANCH="review/rchir"
+export WORKSHOP_REPO_BRANCH="feature/logger"
 # On EC2 the workshop is cloned into ec2-user home by user-data.
 # Override this value if running as a different user.
 export WORKSHOP_HOME="${WORKSHOP_HOME:-/home/ec2-user/workshop-k8s-cnpg}"
