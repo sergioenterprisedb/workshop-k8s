@@ -31,6 +31,7 @@ _LOGGER_C_WARN=$'\033[38;5;216m'
 _LOGGER_C_ERROR=$'\033[38;5;204m'
 _LOGGER_C_DEBUG=$'\033[38;5;246m'
 _LOGGER_C_SECTION=$'\033[38;5;183m'
+_LOGGER_C_ORANGE=$'\033[38;5;214m'
 
 # Color only on an interactive stdout, and only when enabled. INFO has none.
 _logger_use_color() {
@@ -94,7 +95,7 @@ log_info()    { _log_emit "INFO"    "$*"; }
 log_warn()    { _log_emit "WARN"    "$*"; }
 log_error()   { _log_emit "ERROR"   "$*"; }
 log_success() { _log_emit "SUCCESS" "$*"; }
-log_section() { _log_emit "SECTION" "=== $* ==="; }
+log_section() { _log_emit "SECTION" "$*"; }
 
 die() {
   log_error "$*"
@@ -117,6 +118,54 @@ log_stream() {
       _log_emit "INFO" "${line}"
     fi
   done
+  return 0
+}
+
+# Animate while a background process runs, then report success/failure.
+log_spinner() {
+  local pid="$1"
+  local message="$2"
+  local frames='⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏'
+  local nb_frames=10
+  local i=0
+  local exit_code
+
+  if [ -t 1 ] && [ "${LOG_COLORS:-true}" = "true" ]; then
+    tput civis 2>/dev/null || true
+    trap 'tput cnorm 2>/dev/null || true' EXIT INT TERM
+
+    while kill -0 "${pid}" 2>/dev/null; do
+      local frame
+      frame="${frames:$((i % nb_frames)):1}"
+      printf '\r%s%s%s %s...' "${_LOGGER_C_ORANGE}" "${frame}" "${_LOGGER_C_RESET}" "${message}"
+      i=$(( i + 1 ))
+      sleep 0.08
+    done
+
+    wait "${pid}" 2>/dev/null
+    exit_code=$?
+    tput cnorm 2>/dev/null || true
+
+    if [ "${exit_code}" -eq 0 ]; then
+      printf '\r%s%-60s\n' "${_LOGGER_C_SUCCESS}✔${_LOGGER_C_RESET} " "${message}"
+      _log_emit "SUCCESS" "${message}"
+    else
+      printf '\r%s%-60s\n' "${_LOGGER_C_ERROR}✘${_LOGGER_C_RESET} " "${message}"
+      _log_emit "ERROR" "${message} (exit ${exit_code})"
+    fi
+  else
+    printf '%s...' "${message}"
+    wait "${pid}" 2>/dev/null
+    exit_code=$?
+    if [ "${exit_code}" -eq 0 ]; then
+      printf ' done\n'
+      _log_emit "SUCCESS" "${message}"
+    else
+      printf ' failed\n'
+      _log_emit "ERROR" "${message} (exit ${exit_code})"
+    fi
+  fi
+
   return 0
 }
 
