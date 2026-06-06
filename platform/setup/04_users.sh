@@ -7,9 +7,13 @@
 set -Eeuo pipefail
 
 source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/../../config.sh"
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/../../lib/logger.sh"
 
 main() {
   cd "$(dirname "${BASH_SOURCE[0]}")"
+
+  init_logger
+  log_section "Setting up ${TOTAL_USERS} workshop users"
 
   local i username user_home_dir user_lab_dir
 
@@ -17,6 +21,8 @@ main() {
     username="${WORKSHOP_USER_PREFIX}${i}"
     user_home_dir="/home/${username}"
     user_lab_dir="${user_home_dir}/${WORKSHOP_LAB_DIR_NAME}"
+
+    log_info "Configuring ${username}"
 
     # User account
     id "${username}" &>/dev/null || sudo useradd -m -G docker "${username}"
@@ -42,7 +48,11 @@ cd ~/${WORKSHOP_LAB_DIR_NAME}
 ${WORKSHOP_CONTEXT_SCRIPT}
 EOF
     sudo chown -R "${username}:${username}" "${user_home_dir}"
+    log_success "${username} configured"
   done
+
+  log_success "All ${TOTAL_USERS} users configured"
+  finalize_logger
 }
 
 main "$@"

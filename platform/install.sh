@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # -----------------------------------------------------------------------------
 # platform/install.sh
 # Runs the platform setup steps in order (system, cluster, terminal, users).
@@ -7,23 +7,22 @@
 # -----------------------------------------------------------------------------
 set -Eeuo pipefail
 source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/../config.sh"
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/../lib/logger.sh"
 
 main() {
   # cd to the script's own dir so ./setup/*.sh resolve from any invocation directory.
   cd "$(dirname "${BASH_SOURCE[0]}")"
 
-  if ! ./setup/01_system.sh; then
-    exit 1
-  fi
-  if ! ./setup/02_cluster.sh; then
-    exit 1
-  fi
-  if ! ./setup/03_terminal.sh; then
-    exit 1
-  fi
-  if ! ./setup/04_users.sh; then
-    exit 1
-  fi
+  init_logger
+  log_section "Platform installation"
+
+  ./setup/01_system.sh
+  ./setup/02_cluster.sh
+  ./setup/03_terminal.sh
+  ./setup/04_users.sh
+
+  log_success "Platform installation complete"
+  finalize_logger
 }
 
 main "$@"

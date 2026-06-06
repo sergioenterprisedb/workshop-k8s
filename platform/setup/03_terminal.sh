@@ -7,22 +7,25 @@
 set -Eeuo pipefail
 
 source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/../../config.sh"
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/../../lib/logger.sh"
 
 TTYD_VERSION="1.7.7"
 TTYD_BIN="/usr/local/bin/ttyd"
 
 install_ttyd() {
+  log_section "Installing ttyd"
   sudo curl -L \
     "https://github.com/tsl0922/ttyd/releases/download/${TTYD_VERSION}/ttyd.x86_64" \
-    -o "${TTYD_BIN}"
+    -o "${TTYD_BIN}" >/dev/null 2>&1
 
   sudo chmod 755 "${TTYD_BIN}"
 
-  ttyd --version
+  log_success "ttyd installed: $(ttyd --version 2>/dev/null)"
 }
 
 install_tmux() {
-  sudo dnf install -y tmux
+  log_section "Installing tmux"
+  sudo dnf install -y tmux >/dev/null 2>&1
 
   sudo tee /etc/tmux.conf >/dev/null <<'EOF'
 # Global tmux configuration
@@ -88,10 +91,11 @@ EOF
 
   sudo chmod 644 /etc/profile.d/workshop_tmux.sh
 
-  tmux -V
+  log_success "tmux installed: $(tmux -V 2>/dev/null)"
 }
 
 configure_ttyd_service() {
+  log_section "Configuring ttyd service"
   sudo tee /etc/systemd/system/ttyd.service >/dev/null <<EOF
 [Unit]
 Description=ttyd Web Terminal
@@ -107,20 +111,24 @@ RestartSec=3
 WantedBy=multi-user.target
 EOF
 
-  sudo systemctl daemon-reload
+  sudo systemctl daemon-reload >/dev/null 2>&1
 
-  sudo systemctl enable --now ttyd.service
+  sudo systemctl enable --now ttyd.service >/dev/null 2>&1
 
-  systemctl is-active ttyd.service
+  log_success "ttyd service active on port ${TTYD_PORT}"
 }
 
 main() {
   # Ensure relative paths resolve correctly regardless of invocation directory.
   cd "$(dirname "${BASH_SOURCE[0]}")"
 
+  init_logger
+
   install_ttyd
   install_tmux
   configure_ttyd_service
+
+  finalize_logger
 }
 
 main "$@"
