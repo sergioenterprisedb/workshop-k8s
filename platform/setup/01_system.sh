@@ -81,19 +81,6 @@ install_cmctl() {
   log_success "cmctl installed"
 }
 
-install_extra_tools() {
-  log_section "Installing extra tools"
-  sudo dnf -y install rust cargo >/dev/null 2>&1
-
-  # `bat` is a convenience pager only; a first-run cargo build can fail on a
-  # fresh host (cold crates.io index) without compromising the workshop, so
-  # this step is intentionally non-fatal.
-  cargo install --locked bat >/dev/null 2>&1 || log_warn "bat install failed (non-fatal)"
-
-  python3 -m pip install --user rich-cli >/dev/null 2>&1
-  log_success "Extra tools installed"
-}
-
 configure_global_shell() {
   log_section "Configuring global shell environment"
   docker completion bash | sudo tee /etc/bash_completion.d/docker >/dev/null
@@ -126,7 +113,6 @@ main() {
   install_helm
   install_k3d
   install_cmctl
-  install_extra_tools
   configure_global_shell
 
   finalize_logger

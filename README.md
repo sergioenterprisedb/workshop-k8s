@@ -136,6 +136,8 @@ cd ~/workshop-k8s-cnpg/platform
 3. **Terminal** — ttyd + tmux web terminal
 4. **Users** — creates `user1`..`userN` and distributes the lab + kubeconfig
 
+Note that extra-tools should be install manually by administrator. (i.e rich-cli or tools to be compiled)
+
 Then prepare CloudNativePG (admin-only, once):
 
 ```bash
