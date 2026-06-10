@@ -24,8 +24,15 @@ create_cluster() {
     -p "${GRAFANA_PORT}:${GRAFANA_PORT}@loadbalancer" \
     -p "${MINIO_CONSOLE_PORT}:9001@loadbalancer" >/dev/null
 
-  kubectl get nodes >/dev/null 2>&1
   log_success "Cluster created: ${K3D_CLUSTER}"
+
+  # Write kubeconfig immediately so kubectl works for the rest of the script
+  mkdir -p "${HOME}/.kube"
+  sudo k3d kubeconfig get "${K3D_CLUSTER}" > "${HOME}/.kube/config"
+  chmod 600 "${HOME}/.kube/config"
+  log_success "Kubeconfig written: ${HOME}/.kube/config"
+  
+  kubectl get nodes >/dev/null
 }
 
 label_nodes() {
@@ -46,16 +53,6 @@ label_nodes() {
 
   kubectl get nodes --show-labels >/dev/null 2>&1
   log_success "Nodes labelled"
-}
-
-configure_kubeconfig() {
-  log_section "Configuring kubeconfig"
-  mkdir -p "${HOME}/.kube"
-
-  # The command output IS the kubeconfig, so it is written to the file.
-  k3d kubeconfig get "${K3D_CLUSTER}" >"${HOME}/.kube/config"
-  chmod 600 "${HOME}/.kube/config"
-  log_success "Kubeconfig written: ${HOME}/.kube/config"
 }
 
 install_monitoring() {
@@ -126,7 +123,6 @@ main() {
 
   create_cluster
   label_nodes
-  configure_kubeconfig
   install_monitoring
   install_minio
 
