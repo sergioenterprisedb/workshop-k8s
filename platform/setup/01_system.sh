@@ -57,7 +57,7 @@ install_kubectl() {
 
   chmod +x kubectl
   sudo mv kubectl /usr/local/bin/kubectl
-  log_success "kubectl installed: $(kubectl version --client --short 2>/dev/null)"
+  log_success "kubectl installed"
 }
 
 install_helm() {
