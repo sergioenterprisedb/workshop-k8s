@@ -22,7 +22,7 @@ create_cluster() {
     -v '/mnt/disk2:/var/lib/rancher/k3s/storage@agent:1' \
     -v '/mnt/disk3:/var/lib/rancher/k3s/storage@agent:2' \
     -p "${GRAFANA_PORT}:${GRAFANA_PORT}@loadbalancer" \
-    -p "${MINIO_CONSOLE_PORT}:9001@loadbalancer" >/dev/null 2>&1
+    -p "${MINIO_CONSOLE_PORT}:9001@loadbalancer" >/dev/null
 
   kubectl get nodes >/dev/null 2>&1
   log_success "Cluster created: ${K3D_CLUSTER}"
