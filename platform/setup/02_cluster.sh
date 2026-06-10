@@ -15,7 +15,7 @@ create_cluster() {
   log_section "Creating k3d cluster"
   # Each agent mounts a dedicated host disk so PostgreSQL pods land on separate
   # physical volumes (local-path storage maps into these /mnt/diskN mounts).
-  k3d cluster create "${K3D_CLUSTER}" \
+  sudo k3d cluster create "${K3D_CLUSTER}" \
     --servers 1 \
     --agents 3 \
     -v '/mnt/disk1:/var/lib/rancher/k3s/storage@agent:0' \
