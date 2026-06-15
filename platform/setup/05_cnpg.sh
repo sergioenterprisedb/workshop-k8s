@@ -38,7 +38,7 @@ install_cert_manager(){
     --version v1.20.2 \
     --namespace cert-manager \
     --create-namespace \
-    --set crds.enabled=true
+    --set crds.enabled=true >/dev/null
     log_success "cert-manager installed"
 }
 
@@ -55,7 +55,7 @@ install_cnpg_community_operator(){
   --create-namespace \
   --set monitoring.podMonitorEnabled=true \
   --set nodeSelector."node\.workshop/role"=platform \
-  cnpg/cloudnative-pg
+  cnpg/cloudnative-pg >/dev/null
 
   # When installed via Helm, the default name is cnpg-cloudnative-pg.
   kubectl rollout status deployment   -n cnpg-system cnpg-cloudnative-pg
@@ -69,7 +69,7 @@ install_cnpg_barman_cloud_plugin(){
   helm upgrade --install plugin-barman-cloud \
   --namespace cnpg-system \
   --set nodeSelector."node\.workshop/role"=platform \
-  cnpg/plugin-barman-cloud
+  cnpg/plugin-barman-cloud >/dev/null
 
   log_section "CNPG Barman Cloud Plugin installed"
 }
