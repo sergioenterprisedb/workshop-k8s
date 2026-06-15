@@ -63,15 +63,11 @@ export WORKSHOP_CONTEXT_SCRIPT="./set_context.sh"
 # =============================================================================
 # MINIO — Object Storage
 # =============================================================================
-export MINIO_CONTAINER_NAME="minio"
-export MINIO_DATA_DIR="/mnt/backup/minio"
-export MINIO_API_PORT="9000"
 export MINIO_CONSOLE_PORT="9010"
 export MINIO_ROOT_USER="admin"
 # SECURITY: change MINIO_ROOT_PASSWORD before running
 # in a real workshop environment.
 export MINIO_ROOT_PASSWORD="password"
-export MINIO_ENDPOINT="http://minio:9000"
 
 # =============================================================================
 # GRAFANA — Monitoring
@@ -86,9 +82,3 @@ export GRAFANA_ADMIN_PASSWORD="password"
 # WEB TERMINAL
 # =============================================================================
 export TTYD_PORT="4200"
-
-# =============================================================================
-# LOGGING
-# =============================================================================
-# The logging mechanism has been removed and is being redesigned.
-# Scripts currently print progress directly with echo.
