@@ -92,7 +92,7 @@ import_cnpg_dashboard() {
   log_section "Importing CNPG dashboard"
 
   local dashboard_file
-  dashboard_file="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/../resources/cnpg-dashboard.json"
+  dashboard_file="${WORKSHOP_HOME}/platform/resources/cnpg-dashboard.json"
 
   if [ ! -f "${dashboard_file}" ]; then
     log_warn "CNPG dashboard file not found: ${dashboard_file} — skipping"
