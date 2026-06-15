@@ -20,6 +20,7 @@ main() {
   ./setup/02_cluster.sh
   ./setup/03_terminal.sh
   ./setup/04_users.sh
+  ./setup/05_cnpg.sh
 
   log_success "Platform installation complete"
   finalize_logger

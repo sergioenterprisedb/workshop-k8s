@@ -88,9 +88,6 @@ Goal:
 
 ## Next Steps
 
-* Workshop documentation refresh
-* Contributor guide (`CONTRIBUTE.md`) (development pattern, structure, git organization)
-* Tests scenarios playing (--full, --infra-only, --delete)
 * Verify ttyd at the first web access (need refresh)
 * Automated Grafana CNPG dashboard import 
 * Refactor workshop utility scripts
