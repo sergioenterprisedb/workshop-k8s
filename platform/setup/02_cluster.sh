@@ -88,6 +88,60 @@ install_monitoring() {
   log_success "Grafana available on port ${GRAFANA_PORT}"
 }
 
+import_cnpg_dashboard() {
+  log_section "Importing CNPG dashboard"
+
+  local dashboard_file
+  dashboard_file="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/../resources/cnpg-dashboard.json"
+
+  if [ ! -f "${dashboard_file}" ]; then
+    log_warn "CNPG dashboard file not found: ${dashboard_file} — skipping"
+    return 0
+  fi
+
+  # Write payload to temp file — avoids curl inline payload size issues.
+  local payload_file
+  payload_file=$(mktemp /tmp/grafana-dashboard-payload.XXXXXX.json)
+  cat > "${payload_file}" <<EOF
+{
+  "dashboard": $(cat "${dashboard_file}"),
+  "overwrite": true,
+  "folderId": 0
+}
+EOF
+
+  local response
+  response=$(curl -s -X POST \
+    -H "Content-Type: application/json" \
+    -u "${GRAFANA_ADMIN_USER}:${GRAFANA_ADMIN_PASSWORD}" \
+    --data "@${payload_file}" \
+    "http://localhost:${GRAFANA_PORT}/api/dashboards/db")
+
+  rm -f "${payload_file}"
+
+  local dashboard_uid
+  dashboard_uid=$(printf '%s' "${response}" | \
+    python3 -c "import sys,json; print(json.load(sys.stdin).get('uid',''))" \
+    2>/dev/null || true)
+
+  if [ -z "${dashboard_uid}" ]; then
+    log_warn "CNPG dashboard import failed — skipping home dashboard config"
+    log_debug "Grafana response: ${response}"
+    return 0
+  fi
+
+  log_debug "Dashboard UID: ${dashboard_uid}"
+
+  # Set as default home dashboard via Grafana API.
+  curl -s -X PATCH \
+    -H "Content-Type: application/json" \
+    -d "{\"homeDashboardUID\": \"${dashboard_uid}\"}" \
+    "http://localhost:${GRAFANA_PORT}/api/org/preferences" \
+    -u "${GRAFANA_ADMIN_USER}:${GRAFANA_ADMIN_PASSWORD}" >/dev/null 2>&1
+
+  log_success "CNPG dashboard imported and set as home dashboard"
+}
+
 install_minio() {
   log_section "Installing MinIO"
   helm repo add minio https://charts.min.io/ >/dev/null 2>&1
@@ -124,6 +178,7 @@ main() {
   create_cluster
   label_nodes
   install_monitoring
+  import_cnpg_dashboard
   install_minio
 
   finalize_logger
