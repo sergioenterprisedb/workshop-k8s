@@ -36,9 +36,9 @@ main() {
       "${user_lab_dir}/02_install_operator.sh" \
       "${user_lab_dir}/03_check_operator_installed.sh" \
       "${user_lab_dir}/04_install_barman_plugin.sh"
-    sudo cp "${SOURCE_ADMIN_PATH}/scripts/get_clusters.sh" "${user_lab_dir}/"
-    sudo cp "${SOURCE_ADMIN_PATH}/scripts/get_pods.sh" "${user_lab_dir}/"
-    sudo cp "${SOURCE_ADMIN_PATH}/scripts/get_status.sh" "${user_lab_dir}/"
+    sudo cp "${SOURCE_ADMIN_PATH}/resources/scripts/get_clusters.sh" "${user_lab_dir}/"
+    sudo cp "${SOURCE_ADMIN_PATH}/resources/scripts/get_pods.sh" "${user_lab_dir}/"
+    sudo cp "${SOURCE_ADMIN_PATH}/resources/scripts/get_status.sh" "${user_lab_dir}/"
 
     # Kubeconfig + profile
     sudo mkdir -p "${user_home_dir}/.kube"
