@@ -46,19 +46,6 @@ export WORKSHOP_REPO_BRANCH="feature/logger"
 # On EC2 the workshop is cloned into ec2-user home by user-data.
 # Override this value if running as a different user.
 export WORKSHOP_HOME="${WORKSHOP_HOME:-/home/ec2-user/workshop-k8s-cnpg}"
-export SOURCE_CNP_PATH="${WORKSHOP_HOME}/lab/cnpg-hands-on"
-export SOURCE_ADMIN_PATH="${WORKSHOP_HOME}/platform"
-
-# =============================================================================
-# WORKSHOP USERS
-# =============================================================================
-export TOTAL_USERS=10
-export WORKSHOP_USER_PREFIX="user"
-# SECURITY: change WORKSHOP_USER_PASSWORD_PREFIX before running
-# in a real workshop environment.
-export WORKSHOP_USER_PASSWORD_PREFIX="password"
-export WORKSHOP_LAB_DIR_NAME="cnpg-hands-on"
-export WORKSHOP_CONTEXT_SCRIPT="./set_context.sh"
 
 # =============================================================================
 # MINIO — Object Storage
@@ -82,3 +69,39 @@ export GRAFANA_ADMIN_PASSWORD="password"
 # WEB TERMINAL
 # =============================================================================
 export TTYD_PORT="4200"
+
+# =============================================================================
+# WORKSHOP USERS
+# =============================================================================
+export TOTAL_USERS=10
+export WORKSHOP_USER_PREFIX="user"
+# SECURITY: change WORKSHOP_USER_PASSWORD_PREFIX before running
+# in a real workshop environment.
+export WORKSHOP_USER_PASSWORD_PREFIX="password"
+
+# CNPG cluster parameters
+# Sizing
+export POSTGRES_INSTANCES=3
+export POSTGRES_CPU="0.5"
+export POSTGRES_MAX_CPU="0.5"
+export POSTGRES_MEMORY="512Mi"
+export POSTGRES_MAX_MEMORY="512Mi"
+
+# Storage
+export POSTGRES_STORAGE="512Mi"
+export POSTGRES_WAL_STORAGE="512Mi"
+export POSTGRES_IDX_STORAGE="512Mi"
+export POSTGRES_TMP_STORAGE="512Mi"
+
+# Images
+export POSTGRES_DEFAULT_IMAGE="quay.io/enterprisedb/postgresql:16.4"
+export POSTGRES_MINOR_UPGRADE_IMAGE="quay.io/enterprisedb/postgresql:16.5"
+export POSTGRES_MAJOR_UPGRADE_IMAGE="quay.io/enterprisedb/postgresql:17"
+
+# Minio Object Storage environment
+export BUCKET="demo"
+export ACCESS_KEY_ID="admin"
+export ACCESS_SECRET_KEY="password"
+export OBJECT_STORAGE_BUCKET="${BUCKET}"
+export S3_DESTINATION_PATH="s3://${BUCKET}/"
+export S3_ENDPOINT_URL="http://minio.minio.svc.cluster.local:9000"
