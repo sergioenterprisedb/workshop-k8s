@@ -1,10 +1,10 @@
 apiVersion: postgresql.cnpg.io/v1
 kind: Cluster
 metadata:
-  name: major-upgraded-cnpg-cluster-{USER_NAME}
+  name: major-upgraded-cnpg-cluster-${USER_NAME}
 spec:
   instances: 1
-  imageName: ${POSTGRES_MAJOR_UPGRADE_IMAGE}
+  imageName: "${POSTGRES_MAJOR_UPGRADE_IMAGE}"
 
   bootstrap:
     initdb:
@@ -13,23 +13,23 @@ spec:
         databases:
           - app
         source:
-          externalCluster: cnpg-cluster-{USER_NAME}
+          externalCluster: cnpg-cluster-${USER_NAME}
 
   externalClusters:
-    - name: cnpg-cluster-{USER_NAME}
+    - name: cnpg-cluster-${USER_NAME}
       connectionParameters:
         # Use the correct IP or host name for the source database
-        host: cnpg-cluster-{USER_NAME}-rw
+        host: cnpg-cluster-${USER_NAME}-rw
         user: postgres
         dbname: postgres
       password:
-        name: cnpg-cluster-{USER_NAME}-superuser
+        name: cnpg-cluster-${USER_NAME}-superuser
         key: password
 
   storage:
-    size: $POSTGRES_STORAGE
+    size: ${POSTGRES_STORAGE}
   walStorage:
-    size: $POSTGRES_WAL_STORAGE
+    size: ${POSTGRES_WAL_STORAGE}
 
   # Scheduling: Ensure pods spread across your 3 disks/nodes
   affinity:

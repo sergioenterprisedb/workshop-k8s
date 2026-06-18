@@ -2,11 +2,11 @@
 apiVersion: postgresql.cnpg.io/v1
 kind: Cluster
 metadata:
-  name: cnpg-cluster-{USER_NAME}
-  namespace: {USER_NAME}
+  name: cnpg-cluster-${USER_NAME}
+  namespace: ${USER_NAME}
 spec:
-  instances: $POSTGRES_INSTANCES
-  imageName: "$POSTGRES_MINOR_UPGRADE_IMAGE"
+  instances: ${POSTGRES_INSTANCES}
+  imageName: "${POSTGRES_MINOR_UPGRADE_IMAGE}"
 
   enableSuperuserAccess: true
 
@@ -29,9 +29,9 @@ spec:
       - host all all 0.0.0.0/0 md5
 
   storage:
-    size: $POSTGRES_STORAGE
+    size: ${POSTGRES_STORAGE}
   walStorage:
-    size: $POSTGRES_WAL_STORAGE
+    size: ${POSTGRES_WAL_STORAGE}
   
   # Scheduling: Ensure pods spread across your 3 disks/nodes
   affinity:

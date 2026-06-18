@@ -164,7 +164,7 @@ install_minio() {
     --timeout 180s >/dev/null 2>&1
 
   # Pod selector matches the one used elsewhere in the project (-l app=minio).
-  kubectl -n minio get pods -l app=minio \
+  kubectl -n object-storage get pods -l app=minio \
     -o jsonpath='{.items[*].status.phase}' | grep -q "Running" >/dev/null 2>&1
   log_success "MinIO available on port ${MINIO_CONSOLE_PORT}"
 }
