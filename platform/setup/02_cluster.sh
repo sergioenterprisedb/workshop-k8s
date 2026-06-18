@@ -91,17 +91,33 @@ install_monitoring() {
 import_cnpg_dashboard() {
   log_section "Importing CNPG dashboard"
 
-  local dashboard_file
-  dashboard_file="${WORKSHOP_HOME}/platform/resources/cnpg-dashboard.json"
+  local dashboard_file="${WORKSHOP_HOME}/platform/resources/cnpg-dashboard.json"
 
   if [ ! -f "${dashboard_file}" ]; then
     log_warn "CNPG dashboard file not found: ${dashboard_file} — skipping"
     return 0
   fi
 
-  # Write payload to temp file — avoids curl inline payload size issues.
+  # Wait for Grafana API
+  for i in {1..30}; do
+    if curl -fsS \
+      -u "${GRAFANA_ADMIN_USER}:${GRAFANA_ADMIN_PASSWORD}" \
+      "http://localhost:${GRAFANA_PORT}/api/health" >/dev/null; then
+      log_success "Grafana API is ready"
+      break
+    fi
+
+    if [ "$i" -eq 30 ]; then
+      log_warn "Grafana API not ready — skipping dashboard import"
+      return 0
+    fi
+
+    sleep 2
+  done
+
   local payload_file
   payload_file=$(mktemp /tmp/grafana-dashboard-payload.XXXXXX.json)
+
   cat > "${payload_file}" <<EOF
 {
   "dashboard": $(cat "${dashboard_file}"),
@@ -110,14 +126,29 @@ import_cnpg_dashboard() {
 }
 EOF
 
-  local response
-  response=$(curl -s -X POST \
-    -H "Content-Type: application/json" \
-    -u "${GRAFANA_ADMIN_USER}:${GRAFANA_ADMIN_PASSWORD}" \
-    --data "@${payload_file}" \
-    "http://localhost:${GRAFANA_PORT}/api/dashboards/db")
+  local response=""
+  local curl_rc=1
+
+  for i in {1..10}; do
+    if response=$(curl -sS -X POST \
+      -H "Content-Type: application/json" \
+      -u "${GRAFANA_ADMIN_USER}:${GRAFANA_ADMIN_PASSWORD}" \
+      --data "@${payload_file}" \
+      "http://localhost:${GRAFANA_PORT}/api/dashboards/db"); then
+      curl_rc=0
+      break
+    fi
+
+    log_warn "Grafana dashboard import attempt ${i}/10 failed, retrying in 3s..."
+    sleep 3
+  done
 
   rm -f "${payload_file}"
+
+  if [ "${curl_rc}" -ne 0 ]; then
+    log_warn "CNPG dashboard import failed after retries — skipping home dashboard config"
+    return 0
+  fi
 
   local dashboard_uid
   dashboard_uid=$(printf '%s' "${response}" | \
@@ -132,12 +163,11 @@ EOF
 
   log_debug "Dashboard UID: ${dashboard_uid}"
 
-  # Set as default home dashboard via Grafana API.
-  curl -s -X PATCH \
+  curl -sS -X PATCH \
     -H "Content-Type: application/json" \
+    -u "${GRAFANA_ADMIN_USER}:${GRAFANA_ADMIN_PASSWORD}" \
     -d "{\"homeDashboardUID\": \"${dashboard_uid}\"}" \
-    "http://localhost:${GRAFANA_PORT}/api/org/preferences" \
-    -u "${GRAFANA_ADMIN_USER}:${GRAFANA_ADMIN_PASSWORD}" >/dev/null 2>&1
+    "http://localhost:${GRAFANA_PORT}/api/org/preferences" >/dev/null || true
 
   log_success "CNPG dashboard imported and set as home dashboard"
 }

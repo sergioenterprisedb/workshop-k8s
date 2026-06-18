@@ -6,7 +6,7 @@ metadata:
   namespace: ${USER_NAME}
 spec:
   instances: ${POSTGRES_INSTANCES}
-  imageName: "{$POSTGRES_DEFAULT_IMAGE}"
+  imageName: "${POSTGRES_DEFAULT_IMAGE}"
 
   enableSuperuserAccess: true
 
