@@ -21,7 +21,7 @@ create_os_user() {
   user_lab_manifest_dir="${user_lab_dir}/manifests"
 
   # Source path (admin)
-  src_lab_dir="${WORKSHOP_HOME}/cmpg-hands-on"
+  src_lab_dir="${WORKSHOP_HOME}/cnpg-hands-on"
   src_manifest_templates_dir="${WORKSHOP_HOME}/platform/resources/manifests"
 
   log_info "Configuring ${username}"
@@ -38,13 +38,14 @@ create_os_user() {
   sudo mkdir -p "${user_lab_manifest_dir}"
 
   # Generate user manifests from all *-template.yaml files
+  # Rules the file prefix will be the cluster name - choose a relevant name
   for template_file in "${src_manifest_templates_dir}"/*-template.yaml; do
     [ -e "$template_file" ] || continue
 
     filename="$(basename "$template_file")"
-    output_filename="${filename/-template.yaml/-${username}.yaml}"
+    export CLUSTER_NAME="${filename/-template.yaml/-${username}}"
 
-    envsubst < "$template_file" > "${user_lab_manifest_dir}/${output_filename}"
+    envsubst < "$template_file" | sudo tee "${user_lab_manifest_dir}/${CLUSTER_NAME}.yaml" >/dev/null
   done
 
   # Kubeconfig + profile
@@ -57,6 +58,10 @@ create_os_user() {
 
 configure_k8s_user_env() {
   local username="$1" 
+  local user_home_dir
+
+  # User paths
+  user_home_dir="/home/${username}"
 
   # Create user namespace
   kubectl create namespace "${username}"
