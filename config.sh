@@ -56,6 +56,10 @@ export MINIO_ROOT_USER="admin"
 # in a real workshop environment.
 export MINIO_ROOT_PASSWORD="password"
 
+# Minio Object Storage environment
+export S3_DESTINATION_PATH="s3://cnpg/"
+export S3_ENDPOINT_URL="http://object-storage.minio.svc.cluster.local:9000"
+
 # =============================================================================
 # GRAFANA — Monitoring
 # =============================================================================
@@ -97,11 +101,3 @@ export POSTGRES_TMP_STORAGE="512Mi"
 export POSTGRES_DEFAULT_IMAGE="quay.io/enterprisedb/postgresql:16.4"
 export POSTGRES_MINOR_UPGRADE_IMAGE="quay.io/enterprisedb/postgresql:16.5"
 export POSTGRES_MAJOR_UPGRADE_IMAGE="quay.io/enterprisedb/postgresql:17"
-
-# Minio Object Storage environment
-export BUCKET="demo"
-export ACCESS_KEY_ID="admin"
-export ACCESS_SECRET_KEY="password"
-export OBJECT_STORAGE_BUCKET="${BUCKET}"
-export S3_DESTINATION_PATH="s3://${BUCKET}/"
-export S3_ENDPOINT_URL="http://minio.minio.svc.cluster.local:9000"

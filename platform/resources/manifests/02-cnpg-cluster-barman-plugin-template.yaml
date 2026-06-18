@@ -1,0 +1,74 @@
+---
+apiVersion: barmancloud.cnpg.io/v1
+kind: ObjectStore
+metadata:
+  name: minio-storage
+  namespace: {USER_NAME}
+spec:
+  configuration:
+    destinationPath: $S3_DESTINATION_PATH
+    endpointURL: $S3_ENDPOINT_URL
+    s3Credentials:
+      accessKeyId:
+        name: minio-secret
+        key: MINIO_ACCESS_KEY
+      secretAccessKey:
+        name: minio-secret
+        key: MINIO_SECRET_KEY
+    wal:
+      compression: gzip
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: cnpg-cluster-{USER_NAME}
+  namespace: {USER_NAME}
+spec:
+  instances: $POSTGRES_INSTANCES
+  imageName: "$POSTGRES_DEFAULT_IMAGE"
+
+  plugins:
+  - name: barman-cloud.cloudnative-pg.io
+    isWALArchiver: true
+    parameters:
+      barmanObjectName: minio-storage
+
+  enableSuperuserAccess: true
+
+  # Reduce the frequency of standby HA slots updates to once every 5 minutes
+  replicationSlots:
+    highAvailability:
+      enabled: true
+
+  postgresql:
+    synchronous:
+      method: any
+      number: 1
+    parameters:
+      pg_stat_statements.max: "10000"
+      pg_stat_statements.track: all
+    pg_hba:
+      - host replication all all trust
+      - hostssl replication all all trust
+      - hostssl replication streaming_replica all cert
+      - host all all 0.0.0.0/0 md5
+
+  storage:
+    size: $POSTGRES_STORAGE
+  walStorage:
+    size: $POSTGRES_WAL_STORAGE
+  
+  # Scheduling: Ensure pods spread across your 3 disks/nodes
+  affinity:
+    nodeSelector:
+      node.workshop/role: postgres
+    podAntiAffinityType: required # Strict: won't start 2 pods on 1 node
+    topologyKey: kubernetes.io/hostname
+
+  resources:
+    requests:
+      memory: "${POSTGRES_MEMORY}"
+      cpu: "${POSTGRES_CPU}"
+    limits:
+      memory: "${POSTGRES_MAX_MEMORY}"
+      cpu: "${POSTGRES_MAX_CPU}"

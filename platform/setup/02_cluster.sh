@@ -149,7 +149,7 @@ install_minio() {
   helm repo update >/dev/null 2>&1
 
   helm upgrade --install minio minio/minio \
-    --namespace minio \
+    --namespace object-storage \
     --create-namespace \
     --set rootUser="${MINIO_ROOT_USER}" \
     --set rootPassword="${MINIO_ROOT_PASSWORD}" \

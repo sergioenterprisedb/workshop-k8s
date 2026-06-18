@@ -2,7 +2,8 @@
 apiVersion: postgresql.cnpg.io/v1
 kind: Cluster
 metadata:
-  name: $CLUSTER_NAME
+  name: restored-cnpg-cluster-{USER_NAME}
+  namespace: {USER_NAME}
 spec:
   instances: $POSTGRES_INSTANCES
   imageName: "$POSTGRES_DEFAULT_IMAGE"
@@ -35,7 +36,7 @@ spec:
   # Scheduling: Ensure pods spread across your 3 disks/nodes
   affinity:
     nodeSelector:
-      role: postgres-node
+      node.workshop/role: postgres
     podAntiAffinityType: required # Strict: won't start 2 pods on 1 node
     topologyKey: kubernetes.io/hostname
 
@@ -46,14 +47,3 @@ spec:
     limits:
       memory: "${POSTGRES_MAX_MEMORY}"
       cpu: "${POSTGRES_MAX_CPU}"
----
-apiVersion: monitoring.coreos.com/v1
-kind: PodMonitor
-metadata:
-  name: $CLUSTER_NAME
-spec:
-  selector:
-    matchLabels:
-      "cnpg.io/cluster": $CLUSTER_NAME
-  podMetricsEndpoints:
-  - port: metrics

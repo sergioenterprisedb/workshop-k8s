@@ -1,0 +1,47 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: major-upgraded-cnpg-cluster-{USER_NAME}
+spec:
+  instances: 1
+  imageName: ${POSTGRES_MAJOR_UPGRADE_IMAGE}
+
+  bootstrap:
+    initdb:
+      import:
+        type: microservice
+        databases:
+          - app
+        source:
+          externalCluster: cnpg-cluster-{USER_NAME}
+
+  externalClusters:
+    - name: cnpg-cluster-{USER_NAME}
+      connectionParameters:
+        # Use the correct IP or host name for the source database
+        host: cnpg-cluster-{USER_NAME}-rw
+        user: postgres
+        dbname: postgres
+      password:
+        name: cnpg-cluster-{USER_NAME}-superuser
+        key: password
+
+  storage:
+    size: $POSTGRES_STORAGE
+  walStorage:
+    size: $POSTGRES_WAL_STORAGE
+
+  # Scheduling: Ensure pods spread across your 3 disks/nodes
+  affinity:
+    nodeSelector:
+      node.workshop/role: postgres
+    podAntiAffinityType: required # Strict: won't start 2 pods on 1 node
+    topologyKey: kubernetes.io/hostname
+
+  resources:
+    requests:
+      memory: "${POSTGRES_MEMORY}"
+      cpu: "${POSTGRES_CPU}"
+    limits:
+      memory: "${POSTGRES_MAX_MEMORY}"
+      cpu: "${POSTGRES_MAX_CPU}"

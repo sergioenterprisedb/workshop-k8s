@@ -7,7 +7,7 @@ set -Eeuo pipefail
 source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/../lib/logger.sh"
 
 show_user_infos() {
-    kubectl config set-contexts --current --namespace="${USER}"
+    kubectl config set-context --current --namespace="${USER}"
     log_info "Welcome"
     log_info "Your default workspace is set to the namespace ${USER}"
     log_info "Yaml manifests files used in this lab are stored in manifests directory"
@@ -15,7 +15,7 @@ show_user_infos() {
 }
 
 main() {
-    create_namespace
+    show_user_infos
 }
 
 main "$@"

@@ -11,18 +11,15 @@ source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/../../lib/logger.sh"
 
 create_os_user() {
   local username="$1"
-  local user_home_dir
-  local user_lab_dir
-  local src_lab_dir
+  local user_id="${username#${WORKSHOP_USER_PREFIX}}"
 
-  # User paths
-  user_home_dir="/home/${username}"
-  user_lab_dir="${user_home_dir}/cnpg-hands-on"
-  user_lab_manifest_dir="${user_lab_dir}/manifests"
+  local user_home="/home/${username}"
+  local lab_name="cnpg-hands-on"
+  local user_lab="${user_home}/${lab_name}"
+  local user_manifests="${user_lab}/manifests"
 
-  # Source path (admin)
-  src_lab_dir="${WORKSHOP_HOME}/cnpg-hands-on"
-  src_manifest_templates_dir="${WORKSHOP_HOME}/platform/resources/manifests"
+  local src_lab="${WORKSHOP_HOME}/${lab_name}"
+  local src_templates="${WORKSHOP_HOME}/platform/resources/manifests"
 
   log_info "Configuring ${username}"
 
@@ -30,28 +27,36 @@ create_os_user() {
   id "${username}" &>/dev/null || sudo useradd -m -G docker "${username}"
 
   # Password
-  local user_id="${username#${WORKSHOP_USER_PREFIX}}"
   echo "${username}:${WORKSHOP_USER_PASSWORD_PREFIX}${user_id}" | sudo chpasswd
 
   # Lab files
-  sudo cp -r "${src_lab_dir}" "${user_lab_dir}"
-  sudo mkdir -p "${user_lab_manifest_dir}"
+  sudo cp -r "${src_lab}" "${user_lab}"
+  sudo cp -r "${WORKSHOP_HOME}/lib" "${user_home}"
+  sudo mkdir -p "${user_manifests}"
 
   # Generate user manifests from all *-template.yaml files
-  # Rules the file prefix will be the cluster name - choose a relevant name
-  for template_file in "${src_manifest_templates_dir}"/*-template.yaml; do
+  for template_file in "${src_templates}"/*-template.yaml; do
     [ -e "$template_file" ] || continue
 
-    filename="$(basename "$template_file")"
-    export CLUSTER_NAME="${filename/-template.yaml/-${username}}"
+    local template_name
+    local manifest_name
+    local output_file
 
-    envsubst < "$template_file" | sudo tee "${user_lab_manifest_dir}/${CLUSTER_NAME}.yaml" >/dev/null
+    template_name="$(basename "$template_file")"
+    manifest_name="${template_name/-template.yaml/-${username}}"
+    output_file="${user_manifests}/${manifest_name}.yaml"
+
+    log_info "Generating ${output_file}"
+
+    USER_NAME="${username}" envsubst < "$template_file" | sudo tee "$output_file" >/dev/null
   done
 
-  # Kubeconfig + profile
-  sudo mkdir -p "${user_home_dir}/.kube"
-  sudo cp "${HOME}/.kube/config" "${user_home_dir}/.kube/config"
-  sudo chown -R "${username}:${username}" "${user_home_dir}"
+  # Kubeconfig
+  sudo mkdir -p "${user_home}/.kube"
+  sudo cp "${HOME}/.kube/config" "${user_home}/.kube/config"
+
+  # Ownership
+  sudo chown -R "${username}:${username}" "${user_home}"
 
   log_success "${username} configured"
 }
