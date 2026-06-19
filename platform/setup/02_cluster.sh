@@ -190,6 +190,9 @@ install_minio() {
     --set service.type=LoadBalancer \
     --set consoleService.type=LoadBalancer \
     --set nodeSelector."node\.workshop/role"=platform \
+    --set buckets[0].name="cnpg" \
+    --set buckets[0].policy=none \
+    --set buckets[0].purge=false \
     --wait \
     --timeout 180s >/dev/null 2>&1
 
