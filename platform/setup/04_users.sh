@@ -74,7 +74,7 @@ configure_k8s_user_env() {
   # Set the namespace as default
   sudo tee "${user_home_dir}/.bash_profile" >/dev/null <<EOF
 cd ~/cnpg-hands-on
-kubectl config set-context --current --namespace=${username}
+kubectl config set-context --current --namespace=${username} > /dev/null
 EOF
 
   # Generate minio secrets in user namespace

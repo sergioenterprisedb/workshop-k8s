@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # -----------------------------------------------------------------------------
 # platform/setup/03_terminal.sh
-# Installs and configures ttyd (web terminal) and tmux, registering ttyd as a service.
+# Installs and configures ttyd web terminal.
 # Prerequisites: Amazon Linux 2023, ec2-user with sudo rights.
 # -----------------------------------------------------------------------------
 set -Eeuo pipefail
@@ -14,60 +14,31 @@ TTYD_BIN="/usr/local/bin/ttyd"
 
 install_ttyd() {
   log_section "Installing ttyd"
-  sudo curl -L \
+
+  sudo curl -fsSL \
     "https://github.com/tsl0922/ttyd/releases/download/${TTYD_VERSION}/ttyd.x86_64" \
     -o "${TTYD_BIN}" >/dev/null 2>&1
 
   sudo chmod 755 "${TTYD_BIN}"
 
-  log_success "ttyd installed: $(ttyd --version 2>/dev/null)"
+  log_success "ttyd installed: $(${TTYD_BIN} --version 2>/dev/null)"
 }
 
-install_tmux() {
-  log_section "Installing tmux"
-  sudo dnf install -y tmux >/dev/null 2>&1
+configure_login_banner() {
+  log_section "Configuring login banner"
 
-  sudo tee /etc/tmux.conf >/dev/null <<'EOF'
-# Global tmux configuration
+  sudo tee /etc/issue >/dev/null <<'EOF'
+Welcome to the CNPG Hands-on Lab
 
-unbind C-b
-set -g prefix C-Space
-bind C-Space send-prefix
-
-# Pane splitting
-bind Enter split-window -v -c "#{pane_current_path}"
-bind BSpace split-window -h -c "#{pane_current_path}"
-
-# Pane navigation
-bind Left  select-pane -L
-bind Right select-pane -R
-bind Up    select-pane -U
-bind Down  select-pane -D
-
-# Pane resizing
-bind -r C-Left  resize-pane -L 5
-bind -r C-Right resize-pane -R 5
-bind -r C-Up    resize-pane -U 2
-bind -r C-Down  resize-pane -D 2
-
-# Mouse support
-set -g mouse on
-unbind -n MouseDown3Pane
-
-# History
-set-option -g history-limit 50000
-
-# Start indexing at 1
-set -g base-index 1
-setw -g pane-base-index 1
-
-# Reload configuration
-bind r source-file /etc/tmux.conf \; display-message "Configuration reloaded"
-
-# Status bar
-set -g status-bg black
-set -g status-fg white
 EOF
+
+  log_success "Login banner configured"
+}
+
+configure_shell_profile() {
+  log_section "Configuring shell profile"
+
+  sudo rm -f /etc/profile.d/workshop_tmux.sh
 
   sudo tee /etc/profile.d/workshop_prompt.sh >/dev/null <<'EOF'
 if [ -n "$BASH_VERSION" ] && [ -n "$PS1" ]; then
@@ -79,23 +50,12 @@ EOF
 
   sudo chmod 644 /etc/profile.d/workshop_prompt.sh
 
-  sudo tee /etc/profile.d/workshop_tmux.sh >/dev/null <<'EOF'
-if [ -n "$PS1" ] && [ -z "$TMUX" ] && command -v tmux >/dev/null 2>&1; then
-  case "$TERM" in
-    xterm*|screen*|tmux*)
-      exec tmux
-      ;;
-  esac
-fi
-EOF
-
-  sudo chmod 644 /etc/profile.d/workshop_tmux.sh
-
-  log_success "tmux installed: $(tmux -V 2>/dev/null)"
+  log_success "Shell profile configured"
 }
 
 configure_ttyd_service() {
   log_section "Configuring ttyd service"
+
   sudo tee /etc/systemd/system/ttyd.service >/dev/null <<EOF
 [Unit]
 Description=ttyd Web Terminal
@@ -103,7 +63,7 @@ After=network.target
 
 [Service]
 User=root
-ExecStart=${TTYD_BIN} -p ${TTYD_PORT} -W /bin/login
+ExecStart=${TTYD_BIN} -p ${TTYD_PORT} -W -t title="CNPG Hands-on Lab" /bin/login
 Restart=always
 RestartSec=3
 
@@ -112,20 +72,20 @@ WantedBy=multi-user.target
 EOF
 
   sudo systemctl daemon-reload >/dev/null 2>&1
-
   sudo systemctl enable --now ttyd.service >/dev/null 2>&1
+  sudo systemctl restart ttyd.service >/dev/null 2>&1
 
   log_success "ttyd service active on port ${TTYD_PORT}"
 }
 
 main() {
-  # Ensure relative paths resolve correctly regardless of invocation directory.
   cd "$(dirname "${BASH_SOURCE[0]}")"
 
   init_logger
 
   install_ttyd
-  install_tmux
+  configure_login_banner
+  configure_shell_profile
   configure_ttyd_service
 
   finalize_logger

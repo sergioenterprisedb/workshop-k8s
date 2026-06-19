@@ -81,6 +81,32 @@ install_cmctl() {
   log_success "cmctl installed"
 }
 
+install_gum() {
+  log_section "Installing Gum"
+
+  local version="v0.17.0"
+  local package="gum_${version#v}_Linux_x86_64.tar.gz"
+
+  local tmp_dir
+  tmp_dir=$(mktemp -d)
+
+  curl -fsSL \
+    "https://github.com/charmbracelet/gum/releases/download/${version}/${package}" \
+    -o "${tmp_dir}/${package}"
+
+  tar -xzf "${tmp_dir}/${package}" -C "${tmp_dir}"
+
+  sudo install \
+    -m 755 \
+    "${tmp_dir}/gum" \
+    /usr/local/bin/gum
+
+  rm -rf "${tmp_dir}"
+
+  log_success "Gum installed"
+  gum --version
+}
+
 configure_global_shell() {
   log_section "Configuring global shell environment"
   docker completion bash | sudo tee /etc/bash_completion.d/docker >/dev/null
@@ -113,6 +139,7 @@ main() {
   install_helm
   install_k3d
   install_cmctl
+  install_gum
   configure_global_shell
 
   finalize_logger
