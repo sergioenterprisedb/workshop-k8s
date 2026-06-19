@@ -58,7 +58,7 @@ export MINIO_ROOT_PASSWORD="password"
 
 # Minio Object Storage environment
 export S3_DESTINATION_PATH="s3://cnpg/"
-export S3_ENDPOINT_URL="http://object-storage.minio.svc.cluster.local:9000"
+export S3_ENDPOINT_URL="http://minio.object-storage.svc.cluster.local:9000"
 
 # =============================================================================
 # GRAFANA — Monitoring
