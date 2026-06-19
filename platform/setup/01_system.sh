@@ -84,27 +84,19 @@ install_cmctl() {
 install_gum() {
   log_section "Installing Gum"
 
-  local version="v0.17.0"
-  local package="gum_${version#v}_Linux_x86_64.tar.gz"
-
-  local tmp_dir
-  tmp_dir=$(mktemp -d)
+  local version="0.17.0"
 
   curl -fsSL \
-    "https://github.com/charmbracelet/gum/releases/download/${version}/${package}" \
-    -o "${tmp_dir}/${package}"
+    "https://github.com/charmbracelet/gum/releases/download/v${version}/gum_${version}_Linux_x86_64.tar.gz" \
+    | tar -xz -C /tmp
 
-  tar -xzf "${tmp_dir}/${package}" -C "${tmp_dir}"
-
-  sudo install \
-    -m 755 \
-    "${tmp_dir}/gum" \
+  sudo install -m 755 \
+    /tmp/gum_${version}_Linux_x86_64/gum \
     /usr/local/bin/gum
 
-  rm -rf "${tmp_dir}"
+  rm -rf "/tmp/gum_${version}_Linux_x86_64"
 
-  log_success "Gum installed"
-  gum --version
+  log_success "Gum installed: $(gum --version)"
 }
 
 configure_global_shell() {
