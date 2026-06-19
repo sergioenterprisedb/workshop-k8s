@@ -31,44 +31,73 @@ ui_require_gum() {
   fi
 }
 
+# Display a page, useful for instructions
+# Example:
+#   ui_note "
+#   Instructions:
+#   - First step
+#   - ...
+#   "
+ui_note() {
+  gum style \
+    --border rounded \
+    --border-foreground "#64748b" \
+    --padding "1 2" \
+    --foreground "#cbd5e1" \
+    -- "$1"
+}
+
 # Display a major section header.
 # Example:
 #   ui_section "CNPG Cluster Deployment"
 ui_section() {
   gum style \
-    --foreground "#d75fff" \
+    --foreground "#e2e8f0" \
     --border rounded \
+    --border-foreground "#475569" \
     --bold \
     --padding "0 2" \
-    "$1"
+    -- "$1"
 }
 
 # Display informational text.
 # Example:
 #   ui_info "Checking Kubernetes cluster..."
 ui_info() {
-  gum style --foreground "#00aaff" "$1"
+  printf "\n"
+  gum style \
+    --foreground "#94a3b8" \
+    -- "$1"
 }
 
 # Display a success message.
 # Example:
 #   ui_success "Cluster is ready"
 ui_success() {
-  gum style --foreground "#00ff00" --bold "$1"
+  gum style \
+    --foreground "#22c55e" \
+    --bold \
+    -- "✓ $1"
 }
 
 # Display a warning message.
 # Example:
 #   ui_warn "This operation may take several minutes"
 ui_warn() {
-  gum style --foreground "#ffaa00" --bold "$1"
+  gum style \
+    --foreground "#f59e0b" \
+    --bold \
+    -- "⚠ $1"
 }
 
 # Display an error message.
 # Example:
 #   ui_error "Cluster creation failed"
 ui_error() {
-  gum style --foreground "#ff0000" --bold "$1"
+  gum style \
+    --foreground "#ef4444" \
+    --bold \
+    -- "✗ $1"
 }
 
 # Display a numbered or named lab step.
@@ -76,11 +105,9 @@ ui_error() {
 #   ui_step "1 - Deploy the CNPG cluster"
 ui_step() {
   gum style \
-    --foreground "#ffffff" \
-    --background "#5f00af" \
+    --foreground "#60a5fa" \
     --bold \
-    --padding "0 1" \
-    "STEP $1"
+    -- "▶ STEP $1"
 }
 
 # Ask the user to confirm an action.
@@ -90,14 +117,20 @@ ui_step() {
 # Example:
 #   ui_confirm "Do you want to continue?"
 ui_confirm() {
-  gum confirm "$1"
+  gum confirm \
+    --prompt.foreground="#94a3b8" \
+    --selected.foreground="#e2e8f0" \
+    --selected.background="#334155" \
+    --unselected.foreground="#64748b" \
+    "$1"
 }
 
 # Pause the lab flow until the user confirms.
 # Example:
 #   ui_pause
 ui_pause() {
-  gum confirm "Continue?"
+  printf "\n\033[38;5;214m▶ Press Enter to continue ...\033[0m "
+  read -r _
 }
 
 # Ask the user for text input.
@@ -105,14 +138,20 @@ ui_pause() {
 # Example:
 #   namespace=$(ui_input "Namespace name")
 ui_input() {
-  gum input --placeholder "$1"
+  gum input \
+    --prompt.foreground="#94a3b8" \
+    --placeholder.foreground="#64748b" \
+    --placeholder "$1"
 }
 
 # Display a selection menu and print the selected value.
 # Example:
 #   choice=$(ui_choose "Deploy" "Backup" "Restore")
 ui_choose() {
-  gum choose "$@"
+  gum choose \
+    --cursor.foreground="#60a5fa" \
+    --selected.foreground="#22c55e" \
+    "$@"
 }
 
 # Display a spinner while running a command.
@@ -122,7 +161,11 @@ ui_spin() {
   local title="$1"
   shift
 
-  gum spin --title "$title" -- "$@"
+  gum spin \
+    --spinner dot \
+    --title.foreground="#94a3b8" \
+    --title "$title" \
+    -- "$@"
 }
 
 # Simulate text being typed character by character.
@@ -151,8 +194,17 @@ ui_type() {
 #   ui_command "kubectl get pods -A"
 ui_command() {
   local cmd="$1"
+  local short_host
+  local short_pwd
 
-  printf "\n$ "
-  ui_type "$cmd" 0.02
+  short_host="$(hostname -s)"
+  short_pwd="$(pwd | sed "s|^$HOME|~|")"
+
+  printf "\033[1;32m%s@%s\033[0m \033[1;34m%s\033[0m $ " \
+    "$USER" \
+    "$short_host" \
+    "$short_pwd"
+
+  ui_type "$cmd" 0.05
   eval "$cmd"
 }
