@@ -5,34 +5,35 @@ metadata:
   name: restored-cnpg-cluster-${USER_NAME}
   namespace: ${USER_NAME}
 spec:
-  instances: ${POSTGRES_INSTANCES}
+  instances: 1
   imageName: "${POSTGRES_DEFAULT_IMAGE}"
 
   enableSuperuserAccess: true
-
-  # Reduce the frequency of standby HA slots updates to once every 5 minutes
-  replicationSlots:
-    highAvailability:
-      enabled: true
-
-  postgresql:
-    synchronous:
-      method: any
-      number: 1
+  imagePullPolicy: IfNotPresent
+  
+  bootstrap:
+    recovery:
+      source: source
+  externalClusters:
+  - name: source
+    plugin:
+      name: barman-cloud.cloudnative-pg.io
+      parameters:
+        barmanObjectName: minio-storage
+        serverName: cnpg-cluster-${USER_NAME}
+  
+  plugins:
+  - name: barman-cloud.cloudnative-pg.io
+    isWALArchiver: true
     parameters:
-      pg_stat_statements.max: "10000"
-      pg_stat_statements.track: all
-    pg_hba:
-      - host replication all all trust
-      - hostssl replication all all trust
-      - hostssl replication streaming_replica all cert
-      - host all all 0.0.0.0/0 md5
-
+      # Backup Object Store (push, read-write)
+      barmanObjectName: minio-storage
+  
   storage:
     size: ${POSTGRES_STORAGE}
   walStorage:
     size: ${POSTGRES_WAL_STORAGE}
-  
+
   # Scheduling: Ensure pods spread across your 3 disks/nodes
   affinity:
     nodeSelector:

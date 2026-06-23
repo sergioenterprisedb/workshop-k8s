@@ -1,7 +1,7 @@
 apiVersion: postgresql.cnpg.io/v1
 kind: Backup
 metadata:
-  name: cnpg-cluster-${USER_NAME}-backup
+  name: cnpg-cluster-${USER_NAME}-declarative-backup
   namespace: ${USER_NAME}
 spec:
   cluster:

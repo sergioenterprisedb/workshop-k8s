@@ -15,7 +15,7 @@ install_base_packages() {
   sudo dnf -y update >/dev/null 2>&1
 
   sudo dnf -y install \
-    docker git wget tar gzip unzip \
+    docker git wget tar gzip unzip yq jq \
     bash-completion python3 python3-pip \
     htop vim >/dev/null 2>&1
   log_success "Base packages installed"

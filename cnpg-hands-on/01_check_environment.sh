@@ -26,10 +26,8 @@ backups and restores, execute failovers, scale workloads, and explore upgrade sc
 
 Important information:
 • Each participant works in a dedicated Kubernetes namespace, you are working in namespace: ${USER}
-• All resources created during the lab are suffixed with "-${USER}"
+• All resources created during the lab are suffixed with your user name : "-${USER}"
 • Kubernetes manifests are available in the manifests/ directory
-• Grafana URL: http://${PUBLIC_IP}:3010 (admin/password)
-• MinIO URL:   http://${PUBLIC_IP}:9010 (admin/password)
 
 This first script validates your environment and introduces the resources available during the workshop.
 Follow the steps in order, experiment freely, and enjoy the workshop!
@@ -41,29 +39,22 @@ play() {
   ui_info "Remember that you will deploy in your namespace ! If you lose your namespace context, run :"
   ui_command "kubectl config set-context --current --namespace=${NAMESPACE}"
   ui_pause
-  ui_info "All CNPG yaml manifests used by the lab are stored and ordered here :"
-  ui_command "ls -al manifests"
-  ui_pause
   ui_info "Let's see the Kubenetes cluster topology ! "
   ui_command "kubectl get nodes --label-columns=node.workshop/role"
   ui_pause
   ui_info "Let's check CloudNativePG Operator and Barman Cloud PLugin"
-  ui_command "kubectl get pods -n cnpg-system -o wide"
+  ui_command "kubectl get pods -n cnpg-system -o custom-columns=\"NAME:.metadata.name,STATUS:.status.phase,IP:.status.podIP,NODE:.spec.nodeName\""
   ui_pause
   ui_info "Note that a secret has already been deployed into your namespace to interact with minio"
-  ui_command "kubectl get secrets"
+  ui_command "kubectl get secrets minio-secret -o yaml | yq"
   ui_pause
   ui_info "Visit these URLs : "
   ui_success "Minio   : http://${PUBLIC_IP}:9010 (admin/password)"
   ui_success "Grafana : http://${PUBLIC_IP}:3010 (admin/password)"
-  ui_pause
   ui_success "Your lab environment is ready."
-
 }
 
 main() {
   show_instruct
   play
 }
-
-main "$@"

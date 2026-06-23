@@ -8,6 +8,12 @@ spec:
   instances: ${POSTGRES_INSTANCES}
   imageName: "${POSTGRES_MINOR_UPGRADE_IMAGE}"
 
+  plugins:
+  - name: barman-cloud.cloudnative-pg.io
+    isWALArchiver: true
+    parameters:
+      barmanObjectName: minio-storage
+
   enableSuperuserAccess: true
 
   # Reduce the frequency of standby HA slots updates to once every 5 minutes
