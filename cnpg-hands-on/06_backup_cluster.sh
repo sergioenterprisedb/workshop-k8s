@@ -47,10 +47,10 @@ play() {
   ui_info "Let's try imperative backup method" 
   ui_command "kubectl cnpg backup cnpg-cluster-${USER} --plugin-name=barman-cloud.cloudnative-pg.io --method=plugin"
   ui_pause
-  ui_info "Control the backup on K8S :"
+  ui_info "Control the backup on K8S, it may be in progress status due to the data we havec created :"
   ui_command "kubectl get backups.postgresql.cnpg.io" 
   ui_pause
-  ui_info "Check on minio : http://${PUBLIC_IP}:9010 (admin/password)"
+  ui_info "Check on minio, but wait : http://${PUBLIC_IP}:9010 (admin/password)"
   ui_pause
   ui_info "Now we can apply this manifest for a declarative approach : "
   ui_command "cat manifests/03-cnpg-cluster-backup-${USER}.yaml | yq"
@@ -63,7 +63,7 @@ play() {
   ui_pause
   ui_success "Explore your 2 backups, use kubectl describe to analyze your backups"
   ui_success "Grafana : http://${PUBLIC_IP}:3010 (admin/password)"
-  ui_success "Next step we will restore a PostgreSQL cluster from backup"
+  ui_success "Now we will restore a PostgreSQL cluster from backup, go to step 07 !"
 }
 
 main() {

@@ -48,7 +48,8 @@ play() {
   ui_info "Apply the manifest"
   ui_command "kubectl apply -f manifests/02-cnpg-cluster-barman-plugin-${USER}.yaml"
   ui_pause
-  ui_info "Observe the status informations of the cluster and wait until finished, then CTL+C"
+  ui_info "Observe the status informations of the cluster and wait until finished,
+  it could take 2-3 minutes, then CTL+C"
   ui_command "watch -c -n 1 kubectl cnpg status cnpg-cluster-${USER} --color always"
   ui_pause
   ui_info "Check the objectstores resource"
@@ -56,7 +57,7 @@ play() {
   ui_pause
   ui_success "Minio   : http://${PUBLIC_IP}:9010 (admin/password)"
   ui_success "Grafana : http://${PUBLIC_IP}:3010 (admin/password)"
-  ui_success "See WAL archives in cnpg minio bucket"
+  ui_success "See WAL archives in cnpg minio bucket and go to step 05 !"
 }
 
 main() {

@@ -60,10 +60,10 @@ pgbench_history = 0 row (feed during the test)
   ui_command "kubectl cnpg pgbench --job-name pgb-init cnpg-cluster-${USER} -- --initialize"
   ui_pause
   ui_info "Explore data created in app database (\q to exit):"
-  ui_command "kubectl cnpg psq cnpg-cluster-${USER}"
+  ui_command "kubectl cnpg psql cnpg-cluster-${USER} app"
   ui_success "Try to find out how to connect to a replica to check data"
   ui_success "Grafana : http://${PUBLIC_IP}:3010 (admin/password)"
-  ui_success "Next step we will perform a backup"
+  ui_success "Next step we will perform a backup, go to step 06 !"
 }
 
 main() {

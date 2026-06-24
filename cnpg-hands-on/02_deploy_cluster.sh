@@ -57,7 +57,7 @@ play() {
   ui_pause
   ui_info "Explore pods status and go to grafana : "
   ui_success "Grafana : http://${PUBLIC_IP}:3010 (admin/password)"
-  ui_success "Wait for your pg cluster ready before going to next step !"
+  ui_success "Wait for your pg cluster ready or you can go to step 03 !"
 }
 
 main() {

@@ -48,10 +48,12 @@ play() {
   ui_command "cat manifests/06-cnpg-cluster-major-upgrade-${USER}.yaml | yq"
   ui_pause
   ui_info "deploy the manifest :"
-  ui_command "k apply -f manifests/06-cnpg-cluster-major-upgrade-${USER}.yaml" 
+  ui_command "kubectl apply -f manifests/06-cnpg-cluster-major-upgrade-${USER}.yaml" 
   ui_pause
-  ui_info "Check on Grafana : http://${PUBLIC_IP}:3010 (admin/password)"
-  ui_info "Or check with kubectl cnpg status "
+  ui_info "Wait until the cluster is ready, then press CTL+C to return the lab :"
+  ui_command "watch -c -n 1 kubectl cnpg status major-upgraded-cnpg-cluster-${USER} --color always"
+  ui_pause
+  ui_info "Control the data in app database, then go to step 11"
 }
 
 main() {

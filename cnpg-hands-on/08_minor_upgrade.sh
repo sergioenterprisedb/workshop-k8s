@@ -46,8 +46,8 @@ of the CloudNativePG cluster."
   ui_info "deploy the manifest :"
   ui_command "kubectl apply -f manifests/05-cnpg-cluster-minor-upgrade-${USER}.yaml" 
   ui_pause
-  ui_info "Check om Grafana : http://${PUBLIC_IP}:3010 (admin/password)"
-  ui_info "Or check with kubectl cnpg status "
+  ui_info "Check on Grafana, observe the rolling upgrade : http://${PUBLIC_IP}:3010 (admin/password)"
+  ui_info "Or check with kubectl cnpg status. Then go to step 09 "
 }
 
 main() {

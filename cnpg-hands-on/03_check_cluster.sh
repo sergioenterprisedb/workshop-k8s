@@ -36,7 +36,7 @@ Objectives
 }
 
 play() {
-  ui_info "First wait until the cluster is ready, then press CTL+C to return the lab"
+  ui_info "First wait until the cluster is ready, it can take 2 minutes, then press CTL+C to return the lab"
   ui_command "watch -c -n 1 kubectl cnpg status cnpg-cluster-${USER} --color always"
   ui_info "Identify Postgres instances pods with their role"
   ui_command "kubectl get pods --selector=cnpg.io/cluster=cnpg-cluster-${USER} --label-columns role"
@@ -59,7 +59,7 @@ play() {
   ui_info "Use cluster custom resource provide by cnpg"
   ui_command "kubectl get clusters.postgresql.cnpg.io"
   ui_success "Grafana : http://${PUBLIC_IP}:3010 (admin/password)"
-  ui_success "Explore and go to the next step to add backup capabilities"
+  ui_success "Explore and go to the step 04 to add backup capabilities"
 }
 
 main() {

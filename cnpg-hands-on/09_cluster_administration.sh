@@ -47,7 +47,7 @@ play() {
   ui_pause
   REPLICA_POD=$(kubectl get pods --selector=cnpg.io/cluster=cnpg-cluster-"${USER}",role=replica -o jsonpath="{.items[0].metadata.name}")
   ui_info "Let's promote to replica ${REPLICA_POD}"
-  ui_command "kubectl cnpg promote cnpg-cluster-{USER} ${REPLICA_POD}"
+  ui_command "kubectl cnpg promote cnpg-cluster-${USER} ${REPLICA_POD}"
   ui_pause
   ui_info "Check the cluster to see the new role"
   ui_command "kubectl get pods --selector=cnpg.io/cluster=cnpg-cluster-${USER} --label-columns role"
@@ -61,20 +61,22 @@ play() {
   ui_info "Fencing isolates a PostgreSQL instance by stopping the database process while keeping the Kubernetes pod alive. 
   This allows administrators to investigate or recover an instance safely without deleting it or allowing it to rejoin the cluster automatically."
   ui_pause 
-  REPLICA_POD=$(kubectl get pods --selector=cnpg.io/cluster=cnpg-cluster-"${USER}",role=replica -o jsonpath="{.items[0].metadata.name}")
-  ui_info "Let's fencing ${REPLICA_POD} !"
-  ui_command "kubectl cnpg fencing on cnpg-cluster-${USER} ${REPLICA_POD};"
+  FENCED_POD=$(kubectl get pods --selector=cnpg.io/cluster=cnpg-cluster-"${USER}",role=replica -o jsonpath="{.items[0].metadata.name}")
+  ui_info "Let's fencing ${FENCED_POD} !"
+  ui_command "kubectl cnpg fencing on cnpg-cluster-${USER} ${FENCED_POD};"
   ui_pause
   ui_info "Check that postgres is stopped : "
-  ui_command "kubectl exec -it cnpg-cluster-user1-2 -- pg_ctl status"
+  sleep 2
+  ui_command "kubectl exec -it ${FENCED_POD} -- pg_ctl status"
   ui_pause
   ui_info "Let's fencing it off !"
-  ui_command "kubectl cnpg fencing off cnpg-cluster-${USER} ${REPLICA_POD};"
+  sleep 2
+  ui_command "kubectl cnpg fencing off cnpg-cluster-${USER} ${FENCED_POD};"
   ui_pause
   ui_info "Check that postgres is running : "
   ui_command "kubectl exec -it cnpg-cluster-user1-2 -- pg_ctl status"
   ui_pause
-  ui_success "Try to do it yourself !"
+  ui_success "Try to do it yourself or go to step 10"
 }
 
 main() {

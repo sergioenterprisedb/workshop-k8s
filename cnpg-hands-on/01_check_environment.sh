@@ -53,7 +53,7 @@ play() {
   ui_info "Visit these URLs : "
   ui_success "Minio   : http://${PUBLIC_IP}:9010 (admin/password)"
   ui_success "Grafana : http://${PUBLIC_IP}:3010 (admin/password)"
-  ui_success "Your lab environment is ready."
+  ui_success "Your lab environment is ready. Go to step 02 !"
 }
 
 main() {

@@ -48,6 +48,7 @@ play() {
   * kubectl get pods --selector=cnpg.io/cluster=cnpg-cluster-${USER} --label-columns role --watch
   * Grafana : http://${PUBLIC_IP}:3010 (admin/password)
   * kubectl cnpg status cluster=cnpg-cluster-${USER}
+  Then go to step 12 !
   "
 }
 

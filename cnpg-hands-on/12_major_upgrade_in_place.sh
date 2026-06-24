@@ -46,6 +46,7 @@ play() {
   ui_pause
   ui_info "Check on Grafana : http://${PUBLIC_IP}:3010 (admin/password)"
   ui_info "Or check with kubectl cnpg status ..."
+  ui_info "If everything is working well, congratulations !"
 }
 
 main() {
