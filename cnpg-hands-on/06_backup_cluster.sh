@@ -18,7 +18,23 @@ MINIO_URL="http://${PUBLIC_IP}:9010"
 
 show_instruct() {
   ui_note "
-In this step, you will trigger a manual backup, and validate the backup process from both Kubernetes and object storage.
+Step 06 - Perform and Validate Backups
+
+In this step, you will create PostgreSQL backups using CloudNativePG and validate 
+the backup process from both Kubernetes and object storage. You will discover the 
+two backup approaches supported by CloudNativePG: the imperative method using the 
+kubectl plugin and the declarative method using Kubernetes resources. After creating 
+backups, you will inspect their status, review the backup resources created by the 
+operator, and verify that the backup artifacts have been successfully stored in MinIO.
+
+Objectives
+
+* Understand the backup mechanisms available in CloudNativePG
+* Create a backup using the CloudNativePG kubectl plugin
+* Explore the Backup custom resource used for declarative backups
+* Monitor backup execution and status from Kubernetes
+* Verify backup artifacts in MinIO object storage
+* Understand how CloudNativePG integrates backup operations into Kubernetes workflows
   "
   ui_pause
 }
@@ -34,8 +50,7 @@ play() {
   ui_info "Control the backup on K8S :"
   ui_command "kubectl get backups.postgresql.cnpg.io" 
   ui_pause
-  ui_info "Check on minio :  "
-  ui_command "Minio   : http://${PUBLIC_IP}:9010 (admin/password)"
+  ui_info "Check on minio : http://${PUBLIC_IP}:9010 (admin/password)"
   ui_pause
   ui_info "Now we can apply this manifest for a declarative approach : "
   ui_command "cat manifests/03-cnpg-cluster-backup-${USER}.yaml | yq"
@@ -48,10 +63,11 @@ play() {
   ui_pause
   ui_success "Explore your 2 backups, use kubectl describe to analyze your backups"
   ui_success "Grafana : http://${PUBLIC_IP}:3010 (admin/password)"
-  ui_success "Next step we will perform a backup"
+  ui_success "Next step we will restore a PostgreSQL cluster from backup"
 }
 
 main() {
+  clear
   show_instruct
   play
 }

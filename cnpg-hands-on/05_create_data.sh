@@ -18,14 +18,25 @@ MINIO_URL="http://${PUBLIC_IP}:9010"
 
 show_instruct() {
   ui_note "
-In the previous step, you configured the Barman Cloud Plugin and verified that WAL archiving 
-was functioning correctly. In this step, you will use CloudNativePG kubectl plugin to navigate 
-to your postgres instances. You will understand how connection string can be managed and finally
-we will populate data with integrated cnpg pgbench
-The goal is not to benchmark PostgreSQL, but to create a controlled workload that generates additional WAL files before performing a backup.
+Step 05 - Connect to PostgreSQL and Explore Data
 
-* Use the CloudNativePG plugin to initialize and run a small pgbench workload.
-* Explore data
+In this step, you will use the CloudNativePG kubectl plugin to interact directly 
+with your PostgreSQL cluster. You will discover the capabilities of the plugin, 
+learn how CloudNativePG manages database connection strings through Kubernetes Secrets, 
+and connect to your PostgreSQL instances. You will then initialize a sample pgbench 
+dataset and explore the generated objects within the database.
+
+This step focuses on understanding how to access and interact with PostgreSQL clusters 
+managed by CloudNativePG before moving on to backup operations.
+
+Objectives
+
+* Discover the capabilities of the CloudNativePG kubectl plugin
+* Understand how database connection strings are managed through Kubernetes Secrets
+* Connect to PostgreSQL instances using CloudNativePG tools
+* Initialize a sample pgbench dataset
+* Explore tables and data created in the PostgreSQL database
+* Prepare the environment for the backup exercises in the next step
   "
   ui_pause
 }
@@ -35,25 +46,28 @@ play() {
   ui_command "kubectl cnpg | grep -A39 \"A plugin to manage your CloudNativePG clusters\""
   ui_pause
   ui_info "We will feed the database with pgbench but how it works :"
-  ui_command "kubectl cnpg psql cnpg-cluster-${USER} --dry-run | yq" 
+  ui_command "kubectl cnpg pgbench cnpg-cluster-${USER} --dry-run | yq" 
   ui_pause
   ui_info "We have noticed that a connexion String is used : "
   ui_command "kubectl get secrets cnpg-cluster-${USER}-app -o jsonpath=\"{.data.uri}\" | base64 --decode; echo"
   ui_pause
-  ui_info "Now we create the database with default value (be careful we are in a mutualized k8s cluster)
+  ui_info "Now we create the tables in app database with default value (be careful we are in a mutualized k8s cluster)
 pgbench_accounts = 100 000 rows
 pgbench_branches = 1 row
 pgbench_tellers = 10 rows
 pgbench_history = 0 row (feed during the test)  
   "
-  ui_command "kubectl cnpg pgbench cnpg-cluster-${USER}"
+  ui_command "kubectl cnpg pgbench --job-name pgb-init cnpg-cluster-${USER} -- --initialize"
   ui_pause
-  ui_success "Explore your instances, try to find out how to connect to a replica"
+  ui_info "Explore data created in app database (\q to exit):"
+  ui_command "kubectl cnpg psq cnpg-cluster-${USER}"
+  ui_success "Try to find out how to connect to a replica to check data"
   ui_success "Grafana : http://${PUBLIC_IP}:3010 (admin/password)"
   ui_success "Next step we will perform a backup"
 }
 
 main() {
+  clear
   show_instruct
   play
 }

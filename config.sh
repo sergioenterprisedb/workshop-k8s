@@ -17,7 +17,7 @@ set -Eeuo pipefail
 HOME="${HOME:-/root}"
 
 # =============================================================================
-# AWS INFRASTRUCTURE
+# AWS INFRASTRUCTURE ex: c6i
 # =============================================================================
 export REGION="eu-west-3"
 export INSTANCE_TYPE="t2.2xlarge"

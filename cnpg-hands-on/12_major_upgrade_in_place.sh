@@ -18,7 +18,21 @@ MINIO_URL="http://${PUBLIC_IP}:9010"
 
 show_instruct() {
   ui_note "
-In this step, you will perform a major upgrade in place of PostgreSQL on the first cluster. This upgrade will stop the cluster.
+Step 12 - Perform an In-Place Major Upgrade
+
+In this step, you will perform an in-place PostgreSQL major upgrade on your first 
+CloudNativePG cluster. Unlike the previous major upgrade approach, this method 
+upgrades the existing cluster directly. The cluster will be stopped during the 
+operation, so this approach involves downtime. You will review the upgrade manifest, 
+apply it, and monitor the process using Grafana and kubectl cnpg status.
+
+Objectives
+
+* Understand the in-place major upgrade approach
+* Review the upgrade manifest before applying it
+* Upgrade the existing PostgreSQL cluster directly
+* Observe the cluster downtime during the operation
+* Monitor the upgrade process with Grafana and kubectl cnpg status
   "
   ui_pause
 }
@@ -28,13 +42,14 @@ play() {
   ui_command "cat manifests/07-cnpg-cluster-inplace-major-upgrade-${USER}.yaml | yq"
   ui_pause
   ui_info "deploy the manifest :"
-  ui_command "k apply -f manifests/07-cnpg-cluster-inplace-major-upgrade-${USER}.yaml" 
+  ui_command "kubectl apply -f manifests/07-cnpg-cluster-inplace-major-upgrade-${USER}.yaml" 
   ui_pause
   ui_info "Check on Grafana : http://${PUBLIC_IP}:3010 (admin/password)"
   ui_info "Or check with kubectl cnpg status ..."
 }
 
 main() {
+  clear
   show_instruct
   play
 }

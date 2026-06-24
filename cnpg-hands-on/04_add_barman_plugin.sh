@@ -18,15 +18,23 @@ MINIO_URL="http://${PUBLIC_IP}:9010"
 
 show_instruct() {
   ui_note "
-In this step, we will enable WAL archiving to MinIO using the CloudNativePG Barman Cloud Plugin.
-This demonstrates the plugin-based architecture of CloudNativePG, where backup and object storage 
-integrations are decoupled from the core database operator. 
-This design improves flexibility, maintainability, and allows backup capabilities to evolve 
-independently of the PostgreSQL cluster.
+Step 04 - Configure WAL Archiving to MinIO
 
-* Update the Cluster manifest to reference the ObjectStore.
-* Apply the configuration changes to the cluster.
-* Verify that WAL segments are successfully archived to MinIO.
+In this step, you will configure WAL archiving to MinIO using the CloudNativePG 
+Barman Cloud Plugin. This demonstrates CloudNativePG’s plugin-based architecture, 
+where backup and object storage integrations are managed independently from the 
+database operator. This approach provides greater flexibility and simplifies 
+future enhancements.
+
+You will update the cluster configuration, apply the changes, and verify that 
+WAL files are successfully archived to object storage.
+
+Objectives
+
+* Understand the role of WAL archiving in PostgreSQL
+* Discover the CloudNativePG plugin architecture
+* Configure a PostgreSQL cluster to archive WAL files to MinIO
+* Verify that WAL segments are successfully stored in object storage
   "
   ui_pause
 }
@@ -52,6 +60,7 @@ play() {
 }
 
 main() {
+  clear
   show_instruct
   play
 }

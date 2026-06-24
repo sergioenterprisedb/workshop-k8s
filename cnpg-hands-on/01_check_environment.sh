@@ -18,19 +18,21 @@ MINIO_URL="http://${PUBLIC_IP}:9010"
 
 show_instruct() {
   ui_note "
-Welcome to the EDB CloudNativePG Workshop!
+Step 01 - Welcome to the EDB CloudNativePG Workshop!
 
-This lab will guide you through the deployment and operation of PostgreSQL clusters on Kubernetes 
-using CloudNativePG. During the workshop, you will deploy clusters, connect to databases, perform 
-backups and restores, execute failovers, scale workloads, and explore upgrade scenarios.
+This lab will guide you through the deployment and operation of PostgreSQL 
+clusters on Kubernetes using CloudNativePG. During the workshop, you will 
+deploy clusters, connect to databases, perform backups and restores, execute 
+failovers, scale workloads, and explore upgrade scenarios.
 
 Important information:
-• Each participant works in a dedicated Kubernetes namespace, you are working in namespace: ${USER}
+• Each participant works in a dedicated Kubernetes namespace (yours : ${USER})
 • All resources created during the lab are suffixed with your user name : "-${USER}"
 • Kubernetes manifests are available in the manifests/ directory
 
-This first script validates your environment and introduces the resources available during the workshop.
-Follow the steps in order, experiment freely, and enjoy the workshop!
+This first script validates your environment and introduces the resources 
+available during the workshop. Follow the steps in order, experiment freely, 
+and enjoy the workshop!
   "
   ui_pause
 }
@@ -55,6 +57,9 @@ play() {
 }
 
 main() {
+  clear
   show_instruct
   play
 }
+
+main "$@"

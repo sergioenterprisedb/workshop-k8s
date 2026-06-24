@@ -46,8 +46,6 @@ create_os_user() {
     manifest_name="${template_name/-template.yaml/-${username}}"
     output_file="${user_manifests}/${manifest_name}.yaml"
 
-    log_info "Generating ${output_file}"
-
     USER_NAME="${username}" envsubst < "$template_file" | sudo tee "$output_file" >/dev/null
   done
 

@@ -18,15 +18,19 @@ MINIO_URL="http://${PUBLIC_IP}:9010"
 
 show_instruct() {
   ui_note "
-In this step, you will inspect the PostgreSQL cluster deployed by CloudNativePG and explore the Kubernetes
-resources created by the operator. You will review the cluster status, identify the generated resources, 
-and examine the storage components associated with the PostgreSQL instances.
+Step 03 - Explore the PostgreSQL Cluster Resources
 
-By the end of this step, you will understand:
-• How CloudNativePG represents a PostgreSQL cluster in Kubernetes
-• Which resources are automatically created by the operator
-• How Pods, Services, PVCs, and Persistent Volumes are related
-• How PostgreSQL data is persisted in Kubernetes
+In this step, you will inspect the PostgreSQL cluster deployed by CloudNativePG 
+and explore the Kubernetes resources created by the operator. You will review the 
+cluster status, identify the generated resources, and examine the storage components 
+used by the PostgreSQL instances.
+
+Objectives
+
+* Understand how CloudNativePG represents a PostgreSQL cluster in Kubernetes
+* Identify the resources automatically created by the operator
+* Explore the relationship between Pods, Services, PVCs, and Persistent Volumes
+* Understand how PostgreSQL data is stored and persisted in Kubernetes
   "
   ui_pause
 }
@@ -59,6 +63,7 @@ play() {
 }
 
 main() {
+  clear
   show_instruct
   play
 }

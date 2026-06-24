@@ -18,7 +18,25 @@ MINIO_URL="http://${PUBLIC_IP}:9010"
 
 show_instruct() {
   ui_note "
-In this step, you will trigger a manual backup, and validate the backup process from both Kubernetes and object storage.
+Step 07 - Restore a PostgreSQL Cluster from Backup
+
+In this step, you will restore a new PostgreSQL cluster from the backups stored in MinIO.
+CloudNativePG performs recovery by creating a brand-new cluster from a backup source rather 
+than restoring data in place. This approach provides a safe and repeatable recovery process 
+while preserving the original cluster. You will review the recovery manifest, deploy the 
+restored cluster, verify that the data has been recovered successfully, and confirm that 
+WAL archiving resumes on the new cluster. Finally, you will scale the restored cluster 
+to multiple instances to observe how CloudNativePG manages cluster growth after recovery.
+
+Objectives
+
+* Understand the CloudNativePG recovery workflow
+* Restore a new PostgreSQL cluster from a backup stored in object storage
+* Explore the recovery manifest configuration
+* Verify that application data has been successfully recovered
+* Confirm that WAL archiving is active on the restored cluster
+* Scale the restored cluster and observe operator-managed replication
+* Understand why CloudNativePG recovery creates a new cluster rather than modifying an existing one
   "
   ui_pause
 }
@@ -26,31 +44,24 @@ In this step, you will trigger a manual backup, and validate the backup process 
 play() {
   ui_info "Restoring a cluster in K8S consists of easily set up a new fresh and safe cluster with clean data. 
   * We will perform this operation with a manifest configured to the barman object store, note that this cluster
-  will no be monitored in Grafan to simplify the manifest
+  will no be monitored in Grafana to simplify the manifest
   * Then you can check the data of the restored cluster
   "
   ui_info "Let's inspect the restored cluster manifest" 
   ui_command "cat manifests/04-cnpg-cluster-restore-${USER}.yaml | yq"
   ui_pause
   ui_info "deploy the manifest :"
-  ui_command "k apply -f manifests/04-cnpg-cluster-restore-${USER}.yaml" 
+  ui_command "kubectl apply -f manifests/04-cnpg-cluster-restore-${USER}.yaml" 
   ui_pause
-  ui_info "Check on minio : http://${PUBLIC_IP}:9010 (admin/password) "
+  ui_info "Check on minio that the wal are streamed : http://${PUBLIC_IP}:9010 (admin/password) "
   ui_pause
-  ui_info "Now we can apply this manifest for a declarative approach : "
-  ui_command "cat manifests/03-cnpg-cluster-backup-${USER}.yaml | yq"
-  ui_pause
-  ui_info "Before applying this manifest, we can explore how it works : "
-  ui_command "kubectl explain backups.postgresql.cnpg.io.spec --recursive"
-  ui_pause
-  ui_info "Let's apply "
-  ui_command "kubectl apply -f manifests/03-cnpg-cluster-backup-${USER}.yaml "
-  ui_pause
-  ui_success "Explore your 2 backups, use kubectl describe to analyze your backups"
-  ui_success "Verify that the restored cluster has data and streams it WALs"
+  ui_info "As the restored cluster contains omly one instance node, let's scaling it to 3 :"
+  ui_command "kubectl scale --replicas=3 cluster/restored-cnpg-cluster-${USER} "
+  ui_success "Check and ferify that the restored cluster has data and streams it WALs"
 }
 
 main() {
+  clear
   show_instruct
   play
 }

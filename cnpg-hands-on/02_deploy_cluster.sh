@@ -18,21 +18,23 @@ MINIO_URL="http://${PUBLIC_IP}:9010"
 
 show_instruct() {
   ui_note "
-In this step, you will deploy your first PostgreSQL cluster using CloudNativePG !
+Step 02 - Deploy Your First PostgreSQL Cluster
 
-Before creating any resources, we will review the CloudNativePG Custom Resource Definitions (CRDs) 
-and examine the cluster manifest used throughout the workshop. Understanding the structure of the 
-Cluster resource is essential, as most day-to-day operations in CloudNativePG are performed by modifying 
-and applying Kubernetes manifests.
+In this step, you will deploy your first PostgreSQL cluster with CloudNativePG.
+Before creating the cluster, you will review the CloudNativePG CRDs and examine 
+the cluster manifest used in this workshop. Understanding this manifest is important 
+because most CloudNativePG operations are performed by updating and applying 
+Kubernetes resources.
 
-Once the manifest has been reviewed, you will deploy the cluster and monitor its initialization until 
-all PostgreSQL instances are running and ready.
+You will then deploy the cluster and monitor its startup until all PostgreSQL 
+instances are running and ready.
 
-By the end of this step, you will understand:
-• How CloudNativePG extends Kubernetes through CRDs
-• The main sections of a Cluster manifest
-• How a PostgreSQL cluster is deployed and managed by the operator
-• How to monitor the deployment process
+Objectives
+
+* Understand how CloudNativePG extends Kubernetes with CRDs
+* Explore the main sections of a Cluster manifest
+* Deploy a PostgreSQL cluster managed by the operator
+* Monitor the cluster deployment and initialization process
   "
   ui_pause
 }
@@ -59,6 +61,9 @@ play() {
 }
 
 main() {
+  clear
   show_instruct
   play
 }
+
+main "$@"
