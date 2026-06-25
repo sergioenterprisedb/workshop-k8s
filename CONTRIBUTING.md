@@ -33,38 +33,44 @@ any provisioning command:
 
 ```
 workshop-k8s-cnpg/
-├── provision.sh    Main entry point: --infra-only | --full | --delete
+├── provision.sh    Main entry point: --infra-only | --full | --delete | --help
 ├── config.sh       Single source of truth for all configuration (sourced everywhere)
 │
 ├── infra/          AWS infrastructure scripts (run from your machine)
 │   ├── create.sh       VPC, IGW, subnet, SG, EC2 + 4 EBS volumes
 │   ├── delete.sh       destroy everything tagged $TAG_NAME
 │   └── templates/
-│       └── user-data.sh    first-boot: format + mount the 3 EBS volumes only
+│       └── user-data.sh    first-boot: format + mount the extra EBS volumes only
 │
 ├── platform/       Platform installation scripts (run on the EC2 host)
-│   ├── install.sh      orchestrator → setup/01..04
+│   ├── install.sh      orchestrator → setup/01..05
 │   ├── setup/
-│   │   ├── 01_system.sh    docker, kubectl, helm, k3d, cmctl, tools
+│   │   ├── 01_system.sh    docker, kubectl, helm, k3d, cmctl, gum, tools
 │   │   ├── 02_cluster.sh   k3d cluster, node labels, Prometheus/Grafana, MinIO
-│   │   ├── 03_terminal.sh  ttyd + tmux web terminal
-│   │   └── 04_users.sh     create users, distribute lab + kubeconfig
-│   └── scripts/        get_clusters|pods|pvc|status.sh (read-only views)
+│   │   ├── 03_terminal.sh  ttyd + tmux web terminal (welcome user + `login`)
+│   │   ├── 04_users.sh     create users, render per-user manifests, distribute lab + kubeconfig
+│   │   └── 05_cnpg.sh      kubectl-cnpg plugin, cert-manager, CNPG operator, Barman Cloud plugin
+│   └── resources/
+│       ├── banner.txt          welcome-screen banner
+│       ├── cnpg-dashboard.json  Grafana CloudNativePG dashboard
+│       └── manifests/          *-template.yaml (envsubst → per-user manifests)
 │
-├── lib/            Shared libraries (logger coming soon)
+├── lib/            Shared libraries (copied into each user's home with the lab)
+│   ├── logger.sh       leveled/colored logging + log_spinner / log_stream
+│   ├── ui.sh           gum-based interactive helpers for lab scenarios
+│   └── test_logger.sh  logger self-test
 │
-├── lab/            Workshop lab content
-│   └── cnpg-hands-on/  DBA lab — copied into each user's home
-│       ├── 01..25_*.sh     ordered scenarios (install→backup→failover→upgrade)
-│       ├── config.sh       lab config (ns-$(whoami), cluster-$(whoami), images…)
-│       ├── commands.sh     print_* / kube helper functions
-│       └── sql/ , templates/   demo SQL + CNPG YAML templates (envsubst)
+├── cnpg-hands-on/  DBA lab — copied into each user's home (~/cnpg-hands-on)
+│   └── 01..12_*.sh     ordered scenarios (deploy→backup→restore→upgrade→failover)
+│                       each sources ../lib/ui.sh; per-user manifests land in manifests/
 │
 └── docs/images/    architecture / screenshots
 ```
 
 `logs/`, `infra/connect_ec2.sh`, and `infra/.last_public_ip` are generated at
-runtime and git-ignored.
+runtime and git-ignored. The lab's `manifests/` directory is generated per user
+by `04_users.sh` (rendered from `platform/resources/manifests/*-template.yaml`),
+not committed.
 
 ## First configuration
 
@@ -98,14 +104,16 @@ keys — the rest have sensible defaults:
 ```
 
 **How preparation is split.** `infra/templates/user-data.sh` runs at first boot
-and only formats and mounts the 3 EBS volumes. Everything else (waiting for
+and only formats and mounts the extra EBS volumes. Everything else (waiting for
 SSH, `dnf update`, installing git, cloning the repo) is handled by
 `provision.sh` over SSH once the instance is reachable — both `--infra-only`
 and `--full` share this through `provision_instance()`.
 
-Inside the EC2 host, the platform installs with `cd platform && ./install.sh`.
-DBA participants connect via ttyd (`http://<IP>:4200`) or SSH, land in
-`~/cnpg-hands-on`, and run the numbered scripts `06_*` → `25_*` in order.
+Inside the EC2 host, the platform installs with `cd platform && ./install.sh`,
+which runs `setup/01..05` in order (system → cluster → terminal → users → CNPG).
+DBA participants open the ttyd web terminal (`http://<IP>:4200`), type `login`
+and enter their username, land in `~/cnpg-hands-on`, and run the numbered
+scripts `01_*` → `12_*` in order.
 
 **Access:** Grafana `:3010` · MinIO console `:9010` · web terminal `:4200`
 (default creds `admin` / `password` — change them in `config.sh`).
@@ -114,29 +122,35 @@ DBA participants connect via ttyd (`http://<IP>:4200`) or SSH, land in
 
 - **English only** — code, comments, variable names, and docs.
 - **Minimal comments** — explain the **why**, never restate the **what**.
-- **No hardcoded values** — every parameter lives in the root `config.sh`
-  (or `lab/cnpg-hands-on/config.sh` for the lab).
-- **`set -Eeuo pipefail`** at the top of every `infra/` and `platform/` script.
+- **No hardcoded values** — every infra/platform parameter lives in the root
+  `config.sh`. Manifests are parameterized (see templates below).
+- **`set -Eeuo pipefail`** at the top of every script (infra, platform, and lab).
 - **Short file headers** — max 10 lines, wrapped in `# ---` delimiters
   (path, one-line purpose, prerequisites if non-obvious, usage for entry points).
-- **No manual log-file redirections.** The logging mechanism is being
-  rewritten; until `lib/logger.sh` lands, scripts print progress directly.
-- **Per-user isolation:** names derive from `$(whoami)` (`ns-<user>`,
-  `cluster-<user>`). Never hardcode a username.
-- **Templates, not static YAML:** parameterize `templates/*.yaml` with `${var}`
-  and render via `envsubst > "$TMP/<name>.yaml"` before `kubectl apply`.
-- **Structure:** `infra/` / `platform/` scripts use `#!/usr/bin/env bash`,
-  one function per step, and `main "$@"` at the end.
+- **Use the shared libraries**, don't reinvent them:
+  - `lib/logger.sh` → `log_info / log_success / log_warn / log_error /
+    log_section / log_spinner / log_stream / die` for infra/platform scripts.
+  - `lib/ui.sh` → the `ui_*` helpers for interactive lab scenarios.
+  No manual log-file redirections — `init_logger`/`finalize_logger` handle that.
+- **Per-user isolation:** lab resources derive from `$USER` (namespace `$USER`,
+  `cnpg-cluster-$USER`). Never hardcode a username.
+- **Templates, not static YAML:** add new manifests under
+  `platform/resources/manifests/` as `*-template.yaml`, parameterize with
+  `${USER_NAME}` (and other env vars), and let `04_users.sh` render them per
+  user via `envsubst`.
+- **Structure:** scripts use `#!/usr/bin/env bash`, one function per step, and
+  `main "$@"` at the end.
 
-### Sourcing `config.sh`
+### Sourcing `config.sh` and the libraries
 
-`BASH_SOURCE`-relative so it resolves to the repo root regardless of the
-invocation directory:
+`BASH_SOURCE`-relative so paths resolve regardless of the invocation directory:
 
 - `infra/*`, `platform/install.sh`: `…/pwd)/../config.sh`
-- `platform/setup/*`, `platform/scripts/*`: `…/pwd)/../../config.sh`
+- `platform/setup/*`: `…/pwd)/../../config.sh`
+- Lab scripts source the bundled library, not `config.sh`:
+  `source "${LAB_DIR}/lib/ui.sh"` (where `LAB_DIR` is the lab's parent dir).
 
-## Script template
+## Script template (infra / platform)
 
 Every `infra/` and `platform/` script follows this skeleton:
 
@@ -151,10 +165,13 @@ Every `infra/` and `platform/` script follows this skeleton:
 set -Eeuo pipefail
 
 source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/../../config.sh"
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/../../lib/logger.sh"
 
 do_step() {
+  log_section "Doing the step"
   # Comment only when the reason is non-obvious (workaround, constraint).
   some-command --flags
+  log_success "Step done"
 }
 
 main() {
@@ -168,32 +185,116 @@ main() {
 main "$@"
 ```
 
-Lab scripts (`lab/cnpg-hands-on/`) are simpler — `#!/bin/bash`, `source
-./config.sh` at the top, `print_*` helpers from `commands.sh`, and no strict
-mode (don't break a live demo).
+## Authoring a lab scenario (`cnpg-hands-on/`)
 
-## Upcoming changes
+Lab scripts are **interactive, guided demos** driven by `lib/ui.sh` (a thin
+wrapper around [`gum`](https://github.com/charmbracelet/gum), installed by
+`01_system.sh`). They are copied into each user's home together with `lib/`, so
+they source the library by relative path and rely on `$USER` for isolation.
 
-- `lib/logger.sh` is being written from scratch (leveled, colored output).
-- Once it lands, `log_*` functions will be added across the `infra/` and
-  `platform/` scripts, replacing the current direct `echo` progress lines.
+Create the next script as `cnpg-hands-on/NN_<name>.sh` following this skeleton:
 
-Until then, **do not** add `log_*` calls or reintroduce log-file redirections.
+```bash
+#!/usr/bin/env bash
+# -----------------------------------------------------------------------------
+# cnpg-hands-on/NN_<name>.sh
+# One-line purpose of the scenario.
+# -----------------------------------------------------------------------------
+set -Eeuo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+LAB_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
+
+source "${LAB_DIR}/lib/ui.sh"
+
+LAB_USER="${USER}"
+NAMESPACE="${LAB_USER}"
+PUBLIC_IP="${PUBLIC_IP:-$(curl -fsS https://api.ipify.org || echo "<PUBLIC_IP>")}"
+
+GRAFANA_URL="http://${PUBLIC_IP}:3010"
+MINIO_URL="http://${PUBLIC_IP}:9010"
+
+# Boxed instructions shown at the top of the step.
+show_instruct() {
+  ui_note "
+Step NN - <Title>
+
+<What the participant will do and learn in this step.>
+  "
+  ui_pause
+}
+
+# The guided walkthrough: explain, then run one command at a time.
+play() {
+  ui_info "Explain what the next command demonstrates"
+  ui_command "kubectl get pods --selector=cnpg.io/cluster=cnpg-cluster-${USER} --label-columns role"
+  ui_pause
+
+  ui_info "Apply a per-user manifest rendered by 04_users.sh"
+  ui_command "kubectl apply -f manifests/01-cnpg-cluster-${USER}.yaml"
+  ui_pause
+
+  ui_success "Step complete — go to step NN+1 !"
+}
+
+main() {
+  clear
+  show_instruct
+  play
+}
+
+main "$@"
+```
+
+### `lib/ui.sh` helpers
+
+| Helper | Purpose |
+|---|---|
+| `ui_note "<text>"` | Boxed multi-line panel — use for step instructions |
+| `ui_section "<title>"` | Bordered section header |
+| `ui_step "<n - label>"` | Highlighted step marker |
+| `ui_info / ui_success / ui_warn / ui_error "<msg>"` | Colored status lines |
+| `ui_command "<cmd>"` | Echo a fake prompt, "type" the command, then `eval` it — the core demo primitive (**trusted commands only**, it uses `eval`) |
+| `ui_pause` | "Press Enter to continue …" — put one between commands |
+| `ui_confirm "<q>"` | Yes/no prompt (returns 0/1) |
+| `ui_input "<placeholder>"` | Read a line of text input |
+| `ui_choose "a" "b" "c"` | Selection menu, prints the choice |
+| `ui_spin "<title>" cmd …` | Spinner while a command runs |
+| `ui_type "<text>" [delay]` | Typewriter effect without executing |
+| `ui_login` | Welcome-screen helper: prompt for a username and `su -` into it |
+
+Conventions for scenarios:
+
+- Keep the `show_instruct` → `play` → `main` shape; `main` does `clear` first.
+- Precede every `ui_command` with a short `ui_info` explaining *why*, and follow
+  interactive/long-running commands with `ui_pause`.
+- Reference per-user resources as `cnpg-cluster-${USER}` and manifests as
+  `manifests/<NN>-...-${USER}.yaml` — never a hardcoded user or cluster name.
+- End the step by pointing to the next one (`ui_success "… go to step NN+1 !"`).
+- New cluster manifest? Add a `*-template.yaml` under
+  `platform/resources/manifests/` (parameterized with `${USER_NAME}`) so
+  `04_users.sh` renders it into each user's `manifests/`.
 
 ## Dependencies
 
-- **Your machine:** AWS CLI v2 (authenticated), `bash`, `ssh`, `envsubst`.
+- **Your machine:** AWS CLI v2 (authenticated), `bash`, `ssh`.
 - **EC2 (installed by `01_system.sh`):** docker, k3d, kubectl, helm, cmctl,
-  kubectl-cnpg, rich-cli, ttyd, tmux, plus `git`/`jq`/`bc`/`envsubst`/`watch`.
-- **Cluster:** CloudNativePG operator, Barman Cloud plugin `v0.11.0`,
-  cert-manager `v1.19.4`, MinIO + kube-prometheus-stack (Helm),
-  PostgreSQL images `:16.4` (default) / `:16.5` (minor) / `:17` (major).
+  gum, plus `git`/`wget`/`tar`/`unzip`/`jq`/`yq`/`watch`. The web terminal
+  (`ttyd` + `tmux`) is installed by `03_terminal.sh`.
+- **Cluster (installed by `05_cnpg.sh` via Helm):** CloudNativePG operator
+  (`cnpg/cloudnative-pg`), Barman Cloud plugin (`cnpg/plugin-barman-cloud`),
+  cert-manager `v1.20.2`, plus MinIO + kube-prometheus-stack from `02_cluster.sh`.
+  The `kubectl-cnpg` plugin is installed from the upstream script.
+- **PostgreSQL images** (set in `config.sh`): `:16.4` (default) / `:16.5`
+  (minor upgrade) / `:17` (major upgrade).
 
 ## Modification rules
 
-- Don't break the `$(whoami)` isolation.
-- New parameter → `config.sh`; new manifest → template + `envsubst`.
-- Keep the `main()` + `main "$@"` pattern.
+- Don't break the `$USER`-based per-user isolation.
+- New infra/platform parameter → `config.sh`; new manifest →
+  `platform/resources/manifests/*-template.yaml` + `${USER_NAME}` + `envsubst`.
+- Keep the `main()` + `main "$@"` pattern; use `log_*` (infra/platform) or
+  `ui_*` (lab) instead of raw `echo`.
 - Never modify here-doc bodies (`tmux.conf`, `profile.d`, systemd units,
   `.bash_profile`, embedded YAML/JSON).
 - Test AWS scripts with a dedicated `MY_CIDR` and `TAG_NAME` — `delete.sh`
@@ -201,8 +302,6 @@ Until then, **do not** add `log_*` calls or reintroduce log-file redirections.
 
 ## Known issues (avoid reproducing)
 
-- `lab/cnpg-hands-on/config.sh` references undefined `${bucket}` where the real
-  variable is `${s3_bucket}` (`object_storage_bucket` / `s3_destination_path`).
-- A few lab scripts print messages mentioning a `yaml/` or `./docs/` directory
-  that doesn't exist; the actual commands correctly use `$TMP`.
-- `README.md` is partially outdated. Trust the scripts over the README.
+- Lab scripts share copy-pasted file headers (all read
+  `cnpg-hands-on/01_init_environment.sh`); give each new script an accurate header.
+- ttyd may need a manual refresh on the first web access (see `CHANGELOG.md`).

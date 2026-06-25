@@ -50,13 +50,13 @@ EC2 Instance
 
 | Who   | Feature                       | Description                                                      |
 |-------|-------------------------------|------------------------------------------------------------------|
-| Admin | Plugin & Operator Install     | Install `kubectl-cnpg` and deploy the **CloudNativePG operator** |
+| Admin | Plugin & Operator Install     | `kubectl-cnpg` plugin, **CloudNativePG operator**, and **Barman Cloud plugin** — installed automatically by the platform setup |
 | DBA   | PostgreSQL Cluster Deployment | Create a highly available PostgreSQL cluster                     |
-| DBA   | Insert Data                   | Demonstrate workload operations                                  |
-| DBA   | Switchover / Failover         | Promote a replica manually, or on primary failure               |
-| DBA   | Backup / Recovery             | Back up to **MinIO S3** and restore from backup                 |
-| DBA   | Scaling                       | Scale replicas up and down                                       |
-| DBA   | Rolling Updates               | Minor and major PostgreSQL upgrades                              |
+| DBA   | Object Storage (Barman)       | Attach **MinIO S3** for WAL archiving via the Barman Cloud plugin |
+| DBA   | Insert Data                   | Generate workload with `pgbench` and connect via `psql`          |
+| DBA   | Backup / Recovery             | Back up to **MinIO S3** (imperative & declarative) and restore  |
+| DBA   | Switchover / Failover         | Promote a replica manually, or recover on primary failure        |
+| DBA   | Rolling Updates               | Minor and major PostgreSQL upgrades (by copy and in place)       |
 | DBA   | Fencing / Hibernation         | Isolate or pause a cluster                                       |
 | DBA   | Monitoring                    | Use Grafana to monitor cluster health                           |
 
@@ -97,17 +97,26 @@ Everything is driven by the single entry point [`provision.sh`](./provision.sh):
 # Infrastructure only — then install the platform yourself (see step 3):
 ./provision.sh --infra-only
 
-# Or full automation — infrastructure + platform installed via EC2 user-data:
-./provision.sh --full --verbose
+# Or full automation — infrastructure + platform installed automatically over SSH:
+./provision.sh --full
 
 # Tear everything down (destroys all resources tagged $TAG_NAME):
 ./provision.sh --delete
+
+# Show usage:
+./provision.sh --help
 ```
 
-`create.sh` provisions a `t2.2xlarge` (Amazon Linux 2023, 8 vCPU / 32 GiB) with
-**4 gp3 disks** (root + `/mnt/disk1..3` for k3d storage) and a security group
-opening ports **22** (SSH, restricted to `MY_CIDR`), **3010** (Grafana), **9010**
-(MinIO console), and **4200** (ttyd). It also writes an SSH shortcut:
+Both modes provision the infrastructure (`infra/create.sh`), wait for SSH, then
+clone the repo onto the instance. `--full` additionally runs the platform
+installer over SSH. `--delete` asks you to retype `$TAG_NAME` to confirm.
+
+`infra/create.sh` provisions a `t2.2xlarge` (Amazon Linux 2023, 8 vCPU / 32 GiB)
+with **4 × 50 GiB gp3 disks** (root + extra volumes for k3d storage) and a
+security group opening port **22** (SSH, restricted to `MY_CIDR`) plus **3010**
+(Grafana), **9010** (MinIO console), and **4200** (ttyd) — the last three open to
+`0.0.0.0/0` so participants can connect from anywhere. It also writes an SSH
+shortcut:
 
 ```bash
 ./infra/connect_ec2.sh
@@ -126,27 +135,20 @@ Otherwise, SSH into the instance, clone the repo, and run the installer:
 sudo dnf install -y git
 git clone https://github.com/sergioenterprisedb/workshop-k8s-cnpg.git ~/workshop-k8s-cnpg
 cd ~/workshop-k8s-cnpg/platform
-./install.sh            # add --verbose to stream output
+./install.sh
 ```
 
-`install.sh` runs the four setup steps in order, fully automated:
+`install.sh` runs the five setup steps (`platform/setup/0*.sh`) in order, fully
+automated:
 
-1. **System** — docker, kubectl, helm, k3d, cmctl, and CLI tools
-2. **Cluster** — k3d cluster, node labels, **Prometheus/Grafana** + **MinIO** (Helm)
-3. **Terminal** — ttyd + tmux web terminal
-4. **Users** — creates `user1`..`userN` and distributes the lab + kubeconfig
+1. **System** (`01_system.sh`) — docker, kubectl, helm, k3d, cmctl, and CLI tools
+2. **Cluster** (`02_cluster.sh`) — k3d cluster, node labels, **Prometheus/Grafana** + **MinIO** (Helm)
+3. **Terminal** (`03_terminal.sh`) — ttyd + tmux web terminal
+4. **Users** (`04_users.sh`) — creates `user1`..`userN`, distributes the lab, per-user manifests, and kubeconfig
+5. **CNPG** (`05_cnpg.sh`) — `kubectl-cnpg` plugin, **cert-manager**, the **CloudNativePG operator**, and the **Barman Cloud plugin**
 
-Note that extra-tools should be install manually by administrator. (i.e rich-cli or tools to be compiled)
-
-Then prepare CloudNativePG (admin-only, once):
-
-```bash
-cd ~/workshop-k8s-cnpg/lab/cnpg-hands-on
-./01_install_plugin.sh
-./02_install_operator.sh
-./03_check_operator_installed.sh
-./04_install_barman_plugin.sh
-```
+CloudNativePG (plugin, operator, and Barman plugin) is now installed
+automatically by step 5 — no manual preparation is required.
 
 ### Access
 | Service       | URL                          | Credentials          |
@@ -158,37 +160,35 @@ cd ~/workshop-k8s-cnpg/lab/cnpg-hands-on
 ![Grafana](./docs/images/grafana.jpg)
 ![MinIO](./docs/images/minio.jpg)
 
-> Optional: import the [CloudNativePG Grafana dashboard](https://github.com/cloudnative-pg/grafana-dashboards/blob/main/charts/cluster/grafana-dashboard.json)
+> Optional: import the bundled CloudNativePG Grafana dashboard
+> ([`platform/resources/cnpg-dashboard.json`](./platform/resources/cnpg-dashboard.json))
 > via Grafana → Dashboards → New → Import (data source: Prometheus).
 
 ## 4. Run the scenarios (DBA)
 
-Each participant connects to the **web terminal** (`http://<EC2_IP>:4200`) or via
-SSH, logs in as `user[N]` / `password[N]`, and lands in `~/cnpg-hands-on` with
-their kube context already set.
+Each participant opens the **web terminal** (`http://<EC2_IP>:4200`), which lands
+on a welcome screen. Type `login`, enter your username (`user1`..`userN`), and
+you arrive in `~/cnpg-hands-on` with your kube context already set to your own
+namespace. Each user works in a dedicated namespace, and all resources are
+suffixed with the username (e.g. `cnpg-cluster-user1`). Per-user manifests are in
+the `manifests/` directory; the scripts use the `ui_*` helpers from `lib/ui.sh`
+to walk through each step interactively.
 
 Run the numbered scripts in order:
 
 ```bash
-./06_get_cluster_config_file.sh     # render the cluster manifest
-./07_install_cluster.sh             # create the HA PostgreSQL cluster
-./08_show_status.sh                 # watch cluster status
-./09_insert_data.sh                 # insert demo data
-./10_backup_cluster.sh              # backup to MinIO
-./11_backup_describe.sh
-./12_restore_cluster.sh             # restore from backup
-./13_check_restore.sh
-./14_promote.sh                     # switchover
-./15_failover.sh                    # failover
-./16_minor_upgrade.sh               # minor upgrade
-./18_scale_out.sh                   # scale to 4 replicas
-./19_scale_down.sh                  # scale to 2 replicas
-./20_fencing.sh on|off              # fencing
-./21_hibernation.sh on|off          # hibernation
-./22_major_upgrade_by_copy.sh       # major upgrade (by copy)
-./23_verify_data_migrated.sh
-./24_major_upgrade_in_place.sh      # major upgrade (in place)
-./25_verify_major_upgrade.sh
+./01_check_environment.sh        # validate env: cluster topology, operator, Barman plugin, MinIO secret
+./02_deploy_cluster.sh           # create the HA PostgreSQL cluster from a manifest
+./03_check_cluster.sh            # inspect status, pods, services, volumes, and logs
+./04_add_barman_plugin.sh        # attach the Barman Cloud object store (MinIO) for WAL archiving
+./05_create_data.sh              # explore the cnpg plugin, generate data with pgbench, connect via psql
+./06_backup_cluster.sh           # back up to MinIO (imperative kubectl cnpg + declarative Backup resource)
+./07_restore_cluster.sh          # restore into a new cluster from backup, then scale out
+./08_minor_upgrade.sh            # minor PostgreSQL upgrade (kubectl diff + apply)
+./09_cluster_administration.sh   # switchover (promote a replica), hibernation / fencing
+./10_major_upgrade.sh            # major upgrade by copy
+./11_cluster-failover.sh         # simulate primary failure and observe automatic failover
+./12_major_upgrade_in_place.sh   # in-place major upgrade
 ```
 
 ---
@@ -197,5 +197,4 @@ Run the numbered scripts in order:
 
 Repository structure, code conventions, the standard script template,
 dependencies, and known issues are documented in
-[`CONTRIBUTING.md`](./CONTRIBUTING.md). AI-assistant rules live in
-[`AGENTS.md`](./AGENTS.md).
+[`CONTRIBUTING.md`](./CONTRIBUTING.md).
