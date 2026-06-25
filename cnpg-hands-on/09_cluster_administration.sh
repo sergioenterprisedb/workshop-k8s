@@ -39,7 +39,7 @@ Objectives
 }
 
 play() {
-  ui_info "Let's see again what is proposed by kubectl cnpg plugin commands : " 
+  ui_info "Let's see again what is proposed by kubectl cnpg plugin commands : "
   ui_command "kubectl cnpg | grep -A39 \"A plugin to manage your CloudNativePG clusters\""
   ui_pause
   ui_info "Before promote a new primary let's check our cnpg cluster instances role :"
@@ -60,21 +60,21 @@ play() {
   ui_pause
   ui_info "Fencing isolates a PostgreSQL instance by stopping the database process while keeping the Kubernetes pod alive. 
   This allows administrators to investigate or recover an instance safely without deleting it or allowing it to rejoin the cluster automatically."
-  ui_pause 
+  ui_pause
   FENCED_POD=$(kubectl get pods --selector=cnpg.io/cluster=cnpg-cluster-"${USER}",role=replica -o jsonpath="{.items[0].metadata.name}")
   ui_info "Let's fencing ${FENCED_POD} !"
-  ui_command "kubectl cnpg fencing on cnpg-cluster-${USER} ${FENCED_POD};"
+  ui_command "kubectl cnpg fencing on cnpg-cluster-${USER} ${FENCED_POD}"
   ui_pause
   ui_info "Check that postgres is stopped : "
   sleep 2
-  ui_command "kubectl exec -it ${FENCED_POD} -- pg_ctl status"
+  ui_command "kubectl exec -it ${FENCED_POD} -- pg_ctl status || true"
   ui_pause
   ui_info "Let's fencing it off !"
-  sleep 2
-  ui_command "kubectl cnpg fencing off cnpg-cluster-${USER} ${FENCED_POD};"
+  ui_command "kubectl cnpg fencing off cnpg-cluster-${USER} ${FENCED_POD}"
   ui_pause
   ui_info "Check that postgres is running : "
-  ui_command "kubectl exec -it cnpg-cluster-user1-2 -- pg_ctl status"
+  sleep 2
+  ui_command "kubectl exec -it cnpg-cluster-user1-2 -- pg_ctl status || true"
   ui_pause
   ui_success "Try to do it yourself or go to step 10 !"
 }

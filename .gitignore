@@ -1,8 +1,6 @@
 # Logs
 logs/
-
-# Generated SSH helper
-connect_ec2.sh
-
+ISSUES.md
 # Recorded public IP of the most recent instance (full provisioning mode)
 infra/.last_public_ip
+infra/connect_ec2.sh

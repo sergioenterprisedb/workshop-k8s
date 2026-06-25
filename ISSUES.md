@@ -6,5 +6,6 @@
    ajout d'une methode requirenents sur chaque script ?
 - MINOR test de charge 
 - MINOR gestion des sortie avec CTL+C (rejeu du script) 
+- MINOR command list recap
 
 
