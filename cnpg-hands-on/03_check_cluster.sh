@@ -38,16 +38,16 @@ Objectives
 play() {
   ui_info "First wait until the cluster is ready, it can take 2 minutes, then press CTL+C to return the lab"
   ui_command "watch -c -n 1 kubectl cnpg status cnpg-cluster-${USER} --color always"
-  ui_info "Identify Postgres instances pods with their role"
+  ui_info "Identify Postgres instance pods with their role"
   ui_command "kubectl get pods --selector=cnpg.io/cluster=cnpg-cluster-${USER} --label-columns role"
   ui_pause
   ui_info "Check that they are placed correctly on a different dedicated node"
   ui_command "kubectl get pods --selector=cnpg.io/cluster=cnpg-cluster-${USER} -o custom-columns=\"NAME:.metadata.name,IP:.status.podIP,NODE:.spec.nodeName\""
   ui_pause
-  ui_info "Check the services resources deployed to access the cluster"
+  ui_info "Check service resources deployed to access the cluster"
   ui_command "kubectl get services --selector=cnpg.io/cluster=cnpg-cluster-${USER}"
   ui_pause
-  ui_info "Check persistent volume binding and see storage class"
+  ui_info "Check persistent volumes binding and see storage class"
   ui_command "kubectl get persistentvolume"
   ui_pause
   ui_info "Check the logs of the cluster"

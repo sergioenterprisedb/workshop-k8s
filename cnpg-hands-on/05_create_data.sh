@@ -45,23 +45,23 @@ play() {
   ui_info "Let's use cnpg plugin, take a look of available functionalities !" 
   ui_command "kubectl cnpg | grep -A39 \"A plugin to manage your CloudNativePG clusters\""
   ui_pause
-  ui_info "We will feed the database with pgbench but how it works :"
+  ui_info "We will feed the database with pgbench but how it works ?"
   ui_command "kubectl cnpg pgbench cnpg-cluster-${USER} --dry-run | yq" 
   ui_pause
-  ui_info "We have noticed that a connexion String is used : "
+  ui_info "We have noticed that a connection string is used : "
   ui_command "kubectl get secrets cnpg-cluster-${USER}-app -o jsonpath=\"{.data.uri}\" | base64 --decode; echo"
   ui_pause
-  ui_info "Now we create the tables in app database with default value (be careful we are in a mutualized k8s cluster)
+  ui_info "Now let's create tables in app database with pgbench default value :
 pgbench_accounts = 100 000 rows
 pgbench_branches = 1 row
 pgbench_tellers = 10 rows
-pgbench_history = 0 row (feed during the test)  
+pgbench_history = 0 row (feed during a test load)
   "
   ui_command "kubectl cnpg pgbench --job-name pgb-init cnpg-cluster-${USER} -- --initialize"
   ui_pause
   ui_info "Explore data created in app database (\q to exit):"
   ui_command "kubectl cnpg psql cnpg-cluster-${USER} app"
-  ui_success "Try to find out how to connect to a replica to check data"
+  ui_success "Try to find out how to connect to a replica to check data !"
   ui_success "Grafana : http://${PUBLIC_IP}:3010 (admin/password)"
   ui_success "Next step we will perform a backup, go to step 06 !"
 }

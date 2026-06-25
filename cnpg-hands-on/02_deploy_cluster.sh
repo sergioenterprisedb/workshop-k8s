@@ -40,24 +40,24 @@ Objectives
 }
 
 play() {
-  ui_info "Let's review the Custom Resource Definitions (CRDs) installed by the CloudNativePG operator and explore the different resource types available."
+  ui_info "Let's review the Custom Resources Definition (CRD) installed by the CloudNativePG operator and explore the different resources available."
   ui_command "kubectl get customresourcedefinitions.apiextensions.k8s.io | grep cnpg.io"
   ui_pause
   ui_info "You can study the api resources on https://cloudnative-pg.io/docs/1.29/cloudnative-pg.v1 or use (i.e) :"
   ui_command "kubectl explain clusters.postgresql.cnpg.io.spec | less"
   ui_pause
-  ui_info "Let's read our first cnpg cluster manifest, note that the cluster will not be connect to minio |"
+  ui_info "Let's read our first cnpg cluster manifest, note that the cluster will not be connected to minio |"
   ui_command "cat manifests/01-cnpg-cluster-${USER}.yaml | yq"
   ui_pause
   ui_info "Now it's time to deploy your first Postgres cluster"
   ui_command "kubectl apply -f manifests/01-cnpg-cluster-${USER}.yaml"
   ui_pause
-  ui_info "As it take some times, you can control the status of pods or execute this cnpg plugin command :"
+  ui_info "As it take some time, you can control the status of pods or execute this cnpg plugin command :"
   ui_command "kubectl cnpg status cnpg-cluster-${USER}"
   ui_pause
   ui_info "Explore pods status and go to grafana : "
   ui_success "Grafana : http://${PUBLIC_IP}:3010 (admin/password)"
-  ui_success "Wait for your pg cluster ready or you can go to step 03 !"
+  ui_success "Wait for your pg cluster to be ready or go to step 03 !"
 }
 
 main() {

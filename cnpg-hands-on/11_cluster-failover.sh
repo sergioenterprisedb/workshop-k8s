@@ -38,10 +38,11 @@ Objectives
 }
 
 play() {
-  ui_info "Let's destroy primary pods with its pvc resources" 
-  ui_info "Get the name of primary instance"
-  ui_command "PRIMARY_POD=$(kubectl get pods --selector=cnpg.io/cluster=cnpg-cluster-"${USER}",role=primary -o jsonpath=\"{.items[0].metadata.name}\")"
-  ui_command "echo ${PRIMARY_POD}"
+  ui_info "Let's check which pod contains the primary instance :" 
+  ui_command "kubectl get pods --selector=cnpg.io/cluster=cnpg-cluster-${USER} --label-columns role"
+  ui_pause
+  PRIMARY_POD=$(kubectl get pods --selector=cnpg.io/cluster=cnpg-cluster-"${USER}",role=primary -o jsonpath=\"{.items[0].metadata.name}\")
+  ui_info "Let's destroy the primary pod with its pvc resources"
   ui_command "kubectl delete pvc/${PRIMARY_POD} pvc/${PRIMARY_POD}-wal pod/${PRIMARY_POD} --force"
   ui_pause
   ui_success "Take a look on the cluster with :

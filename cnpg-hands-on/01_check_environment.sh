@@ -41,7 +41,7 @@ play() {
   ui_info "Remember that you will deploy in your namespace ! If you lose your namespace context, run :"
   ui_command "kubectl config set-context --current --namespace=${NAMESPACE}"
   ui_pause
-  ui_info "Let's see the Kubenetes cluster topology ! "
+  ui_info "Let's see the Kubernetes cluster topology ! "
   ui_command "kubectl get nodes --label-columns=node.workshop/role"
   ui_pause
   ui_info "Let's check CloudNativePG Operator and Barman Cloud PLugin"

@@ -41,24 +41,24 @@ Objectives
 
 play() {
   ui_info "To perform a backup it exists 2 methods :
-  * Imperative with the usage of kubectl cnpg backup
-  * Declarative with the usage of a manifest based on backups.postgresql.cnpg.io 
+  * Imperative : usage of kubectl cnpg backup
+  * Declarative : usage of a manifest based on backups.postgresql.cnpg.io 
   "
   ui_info "Let's try imperative backup method" 
   ui_command "kubectl cnpg backup cnpg-cluster-${USER} --plugin-name=barman-cloud.cloudnative-pg.io --method=plugin"
   ui_pause
-  ui_info "Control the backup on K8S, it may be in progress status due to the data we havec created :"
+  ui_info "Control the backup status on K8S, it may be in progress :"
   ui_command "kubectl get backups.postgresql.cnpg.io" 
   ui_pause
-  ui_info "Check on minio, but wait : http://${PUBLIC_IP}:9010 (admin/password)"
+  ui_info "Check on minio, but wait a few seconds : http://${PUBLIC_IP}:9010 (admin/password)"
   ui_pause
-  ui_info "Now we can apply this manifest for a declarative approach : "
+  ui_info "Now we can apply this manifest with a declarative approach : "
   ui_command "cat manifests/03-cnpg-cluster-backup-${USER}.yaml | yq"
   ui_pause
   ui_info "Before applying this manifest, we can explore how it works : "
   ui_command "kubectl explain backups.postgresql.cnpg.io.spec --recursive"
   ui_pause
-  ui_info "Let's apply "
+  ui_info "Let's apply !"
   ui_command "kubectl apply -f manifests/03-cnpg-cluster-backup-user1.yaml "
   ui_pause
   ui_success "Explore your 2 backups, use kubectl describe to analyze your backups"

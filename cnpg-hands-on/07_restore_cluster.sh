@@ -53,14 +53,14 @@ play() {
   ui_info "Deploy the manifest :"
   ui_command "kubectl apply -f manifests/04-cnpg-cluster-restore-${USER}.yaml" 
   ui_pause
-  ui_info "Wait until the cluster is ready, then press CTL+C to return the lab :"
+  ui_info "Wait for the cluster to be ready, then press CTL+C to return to the lab :"
   ui_command "watch -c -n 1 kubectl cnpg status restored-cnpg-cluster-${USER} --color always"
   ui_pause
-  ui_info "Check on minio that the wal are streamed : http://${PUBLIC_IP}:9010 (admin/password) "
+  ui_info "Check on minio that the wals are streamed : http://${PUBLIC_IP}:9010 (admin/password) "
   ui_pause
-  ui_info "As the restored cluster contains omly one instance node, let's scaling it to 3 :"
+  ui_info "As the restored cluster contains only one instance node, let's scaling it to 3 :"
   ui_command "kubectl scale --replicas=3 cluster/restored-cnpg-cluster-${USER} "
-  ui_success "Check and verify that the restored cluster has data and streams it WALs, go to step 08 !"
+  ui_success "Check and verify that the restored cluster contains data and streams its WALs, go to step 08 !"
 }
 
 main() {

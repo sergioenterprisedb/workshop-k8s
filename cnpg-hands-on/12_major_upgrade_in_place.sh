@@ -38,10 +38,10 @@ Objectives
 }
 
 play() {
-  ui_info "Let's take a look on the manifest, note that it will be monitored :" 
+  ui_info "Let's take a look on the manifest :" 
   ui_command "cat manifests/07-cnpg-cluster-inplace-major-upgrade-${USER}.yaml | yq"
   ui_pause
-  ui_info "deploy the manifest :"
+  ui_info "Deploy the manifest :"
   ui_command "kubectl apply -f manifests/07-cnpg-cluster-inplace-major-upgrade-${USER}.yaml" 
   ui_pause
   ui_info "Check on Grafana : http://${PUBLIC_IP}:3010 (admin/password)"

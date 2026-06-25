@@ -43,11 +43,11 @@ In this example, the only functional change is the PostgreSQL container image ve
 of the CloudNativePG cluster." 
   ui_command "kubectl diff -f manifests/05-cnpg-cluster-minor-upgrade-${USER}.yaml || true"
   ui_pause
-  ui_info "deploy the manifest :"
+  ui_info "Deploy the manifest :"
   ui_command "kubectl apply -f manifests/05-cnpg-cluster-minor-upgrade-${USER}.yaml" 
   ui_pause
   ui_info "Check on Grafana, observe the rolling upgrade : http://${PUBLIC_IP}:3010 (admin/password)"
-  ui_info "Or check with kubectl cnpg status. Then go to step 09 "
+  ui_info "Or check with kubectl cnpg status. Then go to step 09 !"
 }
 
 main() {

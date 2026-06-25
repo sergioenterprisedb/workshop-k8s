@@ -46,13 +46,13 @@ play() {
   ui_command "kubectl get pods --selector=cnpg.io/cluster=cnpg-cluster-${USER} --label-columns role"
   ui_pause
   REPLICA_POD=$(kubectl get pods --selector=cnpg.io/cluster=cnpg-cluster-"${USER}",role=replica -o jsonpath="{.items[0].metadata.name}")
-  ui_info "Let's promote to replica ${REPLICA_POD}"
+  ui_info "Let's promote replica ${REPLICA_POD} to be primary"
   ui_command "kubectl cnpg promote cnpg-cluster-${USER} ${REPLICA_POD}"
   ui_pause
-  ui_info "Check the cluster to see the new role"
+  ui_info "Check the cluster to see the new assigned roles"
   ui_command "kubectl get pods --selector=cnpg.io/cluster=cnpg-cluster-${USER} --label-columns role"
   ui_pause
-  ui_info "Let's hibernate the cluster and directly see what happens (CTL+C to exit)"
+  ui_info "Let's hibernate the cluster and see what happens (CTL+C to exit)"
   ui_command "kubectl cnpg hibernate on cnpg-cluster-${USER};watch -n 1 -c kubectl get pods --label-columns role --selector=cnpg.io/cluster=cnpg-cluster-${USER}"
   ui_pause
   ui_info "Let's go out from hibernation (CTL+C to exit)"
@@ -76,7 +76,7 @@ play() {
   ui_info "Check that postgres is running : "
   ui_command "kubectl exec -it cnpg-cluster-user1-2 -- pg_ctl status"
   ui_pause
-  ui_success "Try to do it yourself or go to step 10"
+  ui_success "Try to do it yourself or go to step 10 !"
 }
 
 main() {
