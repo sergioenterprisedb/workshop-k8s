@@ -144,6 +144,17 @@ ui_input() {
     --placeholder "$1"
 }
 
+ui_login() {
+  local user
+  echo
+  gum style \
+    --foreground "#94a3b8" \
+    "Username"
+  read -rp "❯ " user
+  [ -z "$user" ] && return 1
+  exec su - "$user"
+}
+
 # Display a selection menu and print the selected value.
 # Example:
 #   choice=$(ui_choose "Deploy" "Backup" "Restore")
