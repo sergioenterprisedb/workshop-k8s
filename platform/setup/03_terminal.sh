@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # -----------------------------------------------------------------------------
 # platform/setup/03_terminal.sh
-# Installs and configures ttyd web terminal.
+# Installs and configures ttyd web terminal with a welcome account.
 # Prerequisites: Amazon Linux 2023, ec2-user with sudo rights.
 # -----------------------------------------------------------------------------
 set -Eeuo pipefail
@@ -11,6 +11,7 @@ source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/../../lib/logger.sh"
 
 TTYD_VERSION="1.7.7"
 TTYD_BIN="/usr/local/bin/ttyd"
+WELCOME_USER="welcome"
 
 install_ttyd() {
   log_section "Installing ttyd"
@@ -24,15 +25,68 @@ install_ttyd() {
   log_success "ttyd installed: $(${TTYD_BIN} --version 2>/dev/null)"
 }
 
-configure_login_banner() {
-  log_section "Configuring login banner"
+configure_welcome_user() {
+  log_section "Configuring welcome user"
 
-  sudo tee /etc/issue >/dev/null <<'EOF'
-Welcome to the CNPG Hands-on Lab
+  if ! id "${WELCOME_USER}" >/dev/null 2>&1; then
+    sudo useradd -m -s /bin/bash "${WELCOME_USER}"
+  fi
 
+  sudo passwd -l "${WELCOME_USER}" >/dev/null 2>&1 || true
+
+  sudo cp -r "${WORKSHOP_HOME}/lib" /home/${WELCOME_USER}/
+  sudo cp ${WORKSHOP_HOME}/platform/resources/banner.txt" /home/${WELCOME_USER}/
+  sudo tee "/home/${WELCOME_USER}/.bash_profile" >/dev/null <<'EOF'
+clear
+
+source lib/ui.sh
+
+start() {
+ ui_login
+}
+
+ui_info "$(cat banner.txt)"
+echo
+ui_note "
+Welcome to the Kubernetes and CloudNativePG Hands-on Lab.
+
+You are currently connected with a temporary welcome account only used to display 
+this welcome page.
+
+* Type 'login' into the prompt to connect to your lab session !
+* Then enter your assigned username and password.
+
+Each participant has a dedicated Linux account and works in their own K8S namespace.
+"
+alias login='ui_login'
+ui_success "Ready when you are."
 EOF
 
-  log_success "Login banner configured"
+  sudo tee "/home/${WELCOME_USER}/.bashrc" >/dev/null <<'EOF'
+start() {
+  echo
+  read -rp "Username: " LAB_USER
+
+  if [ -z "${LAB_USER}" ]; then
+    echo "Username cannot be empty"
+    return 1
+  fi
+
+  exec su - "${LAB_USER}"
+}
+
+alias login='start'
+EOF
+
+  sudo chown "${WELCOME_USER}:${WELCOME_USER}" \
+    "/home/${WELCOME_USER}/.bash_profile" \
+    "/home/${WELCOME_USER}/.bashrc"
+
+  sudo chmod 644 \
+    "/home/${WELCOME_USER}/.bash_profile" \
+    "/home/${WELCOME_USER}/.bashrc"
+
+  log_success "Welcome user configured"
 }
 
 configure_shell_profile() {
@@ -62,8 +116,10 @@ Description=ttyd Web Terminal
 After=network.target
 
 [Service]
-User=root
-ExecStart=${TTYD_BIN} -p ${TTYD_PORT} -W -t title="CNPG Hands-on Lab" /bin/login
+User=${WELCOME_USER}
+Group=${WELCOME_USER}
+WorkingDirectory=/home/${WELCOME_USER}
+ExecStart=${TTYD_BIN} -p ${TTYD_PORT} -W -t title="CNPG Hands-on Lab" /bin/bash -l
 Restart=always
 RestartSec=3
 
@@ -84,7 +140,7 @@ main() {
   init_logger
 
   install_ttyd
-  configure_login_banner
+  configure_welcome_user
   configure_shell_profile
   configure_ttyd_service
 
