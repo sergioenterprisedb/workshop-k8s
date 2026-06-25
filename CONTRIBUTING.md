@@ -7,8 +7,6 @@ on a single AWS EC2 host (Docker + k3d, 1 server / 3 agents), with MinIO
 It is **multi-user**: one VM hosts `user1`..`userN`, each driving its own
 cluster in its own namespace.
 
-For AI-assistant rules and coding patterns, see [`AGENTS.md`](./AGENTS.md).
-
 ## Platform Requirements
 
 | Platform | Requirement | Notes |
@@ -300,8 +298,3 @@ Conventions for scenarios:
 - Test AWS scripts with a dedicated `MY_CIDR` and `TAG_NAME` — `delete.sh`
   removes **all** resources carrying the tag.
 
-## Known issues (avoid reproducing)
-
-- Lab scripts share copy-pasted file headers (all read
-  `cnpg-hands-on/01_init_environment.sh`); give each new script an accurate header.
-- ttyd may need a manual refresh on the first web access (see `CHANGELOG.md`).
