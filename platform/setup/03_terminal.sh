@@ -34,57 +34,43 @@ configure_welcome_user() {
 
   sudo passwd -l "${WELCOME_USER}" >/dev/null 2>&1 || true
 
-  sudo cp -r "${WORKSHOP_HOME}/lib" /home/${WELCOME_USER}/
-  sudo cp ${WORKSHOP_HOME}/platform/resources/banner.txt" /home/${WELCOME_USER}/
+  sudo mkdir -p "/home/${WELCOME_USER}"
+
+  sudo cp -r "${WORKSHOP_HOME}/lib" "/home/${WELCOME_USER}/"
+  sudo cp "${WORKSHOP_HOME}/platform/resources/banner.txt" "/home/${WELCOME_USER}/"
+
   sudo tee "/home/${WELCOME_USER}/.bash_profile" >/dev/null <<'EOF'
 clear
 
 source lib/ui.sh
 
-start() {
- ui_login
-}
-
 ui_info "$(cat banner.txt)"
+
 echo
+
 ui_note "
 Welcome to the Kubernetes and CloudNativePG Hands-on Lab.
 
-You are currently connected with a temporary welcome account only used to display 
+You are currently connected with a temporary welcome account only used to display
 this welcome page.
 
-* Type 'login' into the prompt to connect to your lab session !
-* Then enter your assigned username and password.
+• Type 'login' to connect to your lab session.
+• Then enter your assigned username and password.
 
-Each participant has a dedicated Linux account and works in their own K8S namespace.
+Each participant has a dedicated Linux account and works in their own Kubernetes namespace.
 "
+
 alias login='ui_login'
+
 ui_success "Ready when you are."
 EOF
 
-  sudo tee "/home/${WELCOME_USER}/.bashrc" >/dev/null <<'EOF'
-start() {
-  echo
-  read -rp "Username: " LAB_USER
+  sudo chown -R "${WELCOME_USER}:${WELCOME_USER}" \
+    "/home/${WELCOME_USER}/lib" \
+    "/home/${WELCOME_USER}/banner.txt" \
+    "/home/${WELCOME_USER}/.bash_profile"
 
-  if [ -z "${LAB_USER}" ]; then
-    echo "Username cannot be empty"
-    return 1
-  fi
-
-  exec su - "${LAB_USER}"
-}
-
-alias login='start'
-EOF
-
-  sudo chown "${WELCOME_USER}:${WELCOME_USER}" \
-    "/home/${WELCOME_USER}/.bash_profile" \
-    "/home/${WELCOME_USER}/.bashrc"
-
-  sudo chmod 644 \
-    "/home/${WELCOME_USER}/.bash_profile" \
-    "/home/${WELCOME_USER}/.bashrc"
+  sudo chmod 644 "/home/${WELCOME_USER}/.bash_profile"
 
   log_success "Welcome user configured"
 }
