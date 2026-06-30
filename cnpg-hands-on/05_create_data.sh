@@ -59,6 +59,12 @@ pgbench_history = 0 row (feed during a test load)
   "
   ui_command "kubectl cnpg pgbench --job-name pgb-init cnpg-cluster-${USER} -- --initialize"
   ui_pause
+  ui_info "To accelerate future backup duration, let's use cnpg psql directly to remove some lines in pg_bench_accounts table"
+  ui_command "kubectl cnpg psql cnpg-cluster-${USER} -- app -c \"DELETE FROM pgbench_accounts WHERE aid > 1000;\""
+  ui_pause
+  ui_info "Let's perform a full vaccum to free space "
+  ui_command "kubectl cnpg psql cnpg-cluster-${USER} -- app -c \"VACUUM FULL pgbench_accounts;\""
+  ui_pause
   ui_info "Explore data created in app database (\q to exit):"
   ui_command "kubectl cnpg psql cnpg-cluster-${USER} app"
   ui_success "Try to find out how to connect to a replica to check data !"

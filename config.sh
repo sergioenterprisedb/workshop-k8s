@@ -20,7 +20,7 @@ HOME="${HOME:-/root}"
 # AWS INFRASTRUCTURE ex: c6i
 # =============================================================================
 export REGION="eu-west-3"
-export INSTANCE_TYPE="t2.2xlarge"
+export INSTANCE_TYPE="c6i.8xlarge"
 export TAG_NAME="rch-rev"
 
 # =============================================================================
