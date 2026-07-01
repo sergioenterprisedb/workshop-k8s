@@ -74,7 +74,7 @@ play() {
   ui_pause
   ui_info "Check that postgres is running : "
   sleep 2
-  ui_command "kubectl exec -it cnpg-cluster-user1-2 -- pg_ctl status || true"
+  ui_command "kubectl exec -it ${FENCED_POD} -- pg_ctl status || true"
   ui_pause
   ui_success "Try to do it yourself or go to step 10 !"
 }

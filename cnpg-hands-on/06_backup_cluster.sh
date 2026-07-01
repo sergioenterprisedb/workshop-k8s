@@ -59,7 +59,7 @@ play() {
   ui_command "kubectl explain backups.postgresql.cnpg.io.spec --recursive"
   ui_pause
   ui_info "Let's apply !"
-  ui_command "kubectl apply -f manifests/03-cnpg-cluster-backup-user1.yaml "
+  ui_command "kubectl apply -f manifests/03-cnpg-cluster-backup-${USER}.yaml "
   ui_pause
   ui_success "Explore your 2 backups, use kubectl describe to analyze your backups"
   ui_success "Grafana : http://${PUBLIC_IP}:3010 (admin/password)"
