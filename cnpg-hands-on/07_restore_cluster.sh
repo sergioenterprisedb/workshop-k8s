@@ -61,8 +61,8 @@ play() {
   ui_info "As the restored cluster contains only one instance node, let's scaling it to 3 :"
   ui_command "kubectl scale --replicas=2 cluster/restored-cnpg-cluster-${USER} "
   ui_pause
-  ui_info "Follow the status of the cluster, then press CTL+C to return to the lab :"
-  ui_command "kubectl get clusters restored-cnpg-cluster-${USER} -w"
+  ui_success "Follow the status of the cluster with this command :"
+  ui_success "kubectl get clusters restored-cnpg-cluster-${USER} -w"
   ui_success "Check and verify that the restored cluster contains data and streams its WALs, go to step 08 !"
 }
 
