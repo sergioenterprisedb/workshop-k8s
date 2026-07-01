@@ -9,6 +9,8 @@ spec:
   imageName: "${POSTGRES_MAJOR_UPGRADE_IMAGE}"
 
   enableSuperuserAccess: true
+  primaryUpdateStrategy: unsupervised
+  primaryUpdateMethod: switchover
 
   # Reduce the frequency of standby HA slots updates to once every 5 minutes
   replicationSlots:

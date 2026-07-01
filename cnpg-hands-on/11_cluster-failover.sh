@@ -48,7 +48,7 @@ play() {
   ui_success "Take a look on the cluster with :
   * kubectl get pods --selector=cnpg.io/cluster=cnpg-cluster-${USER} --label-columns role --watch
   * Grafana : http://${PUBLIC_IP}:3010 (admin/password)
-  * kubectl cnpg status cluster=cnpg-cluster-${USER}
+  * watch -c -n 1 kubectl cnpg status cnpg-cluster-${USER} --color always
   Then go to step 12 !
   "
 }

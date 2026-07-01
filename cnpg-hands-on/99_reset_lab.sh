@@ -8,7 +8,6 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 LAB_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
 
 source "${LAB_DIR}/lib/ui.sh"
-source "${LAB_DIR}/config.sh"
 
 LAB_USER="${USER}"
 NAMESPACE="${LAB_USER}"
@@ -22,6 +21,11 @@ CLUSTERS=(
   "restored-cnpg-cluster-${USER}"
   "major-upgraded-cnpg-cluster-${USER}"
 )
+
+MINIO_ROOT_USER="admin"
+MINIO_ROOT_PASSWORD="password"
+OBJECT_STORAGE_BUCKET="cnpg"
+S3_ENDPOINT_URL="http://minio.object-storage.svc.cluster.local:9000"
 
 show_instruct() {
   ui_note "
