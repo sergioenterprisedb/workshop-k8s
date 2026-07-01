@@ -57,7 +57,8 @@ export MINIO_ROOT_USER="admin"
 export MINIO_ROOT_PASSWORD="password"
 
 # Minio Object Storage environment
-export S3_DESTINATION_PATH="s3://cnpg/"
+export OBJECT_STORAGE_BUCKET="cnpg"
+export S3_DESTINATION_PATH="s3://${OBJECT_STORAGE_BUCKET}/"
 export S3_ENDPOINT_URL="http://minio.object-storage.svc.cluster.local:9000"
 
 # =============================================================================
@@ -77,7 +78,7 @@ export TTYD_PORT="4200"
 # =============================================================================
 # WORKSHOP USERS
 # =============================================================================
-export TOTAL_USERS=10
+export TOTAL_USERS=15
 export WORKSHOP_USER_PREFIX="user"
 # SECURITY: change WORKSHOP_USER_PASSWORD_PREFIX before running
 # in a real workshop environment.
