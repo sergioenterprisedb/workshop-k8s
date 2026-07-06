@@ -17,10 +17,12 @@ set -Eeuo pipefail
 HOME="${HOME:-/root}"
 
 # =============================================================================
-# AWS INFRASTRUCTURE ex: c6i
+# AWS INFRASTRUCTURE ex: 
+# For 15 users in a workshop : c6i.8xlarge is enough (16 cores / 64 GB / good IOPS)
+# For testing environment : t2.2xlarge (8 cores / 32 GB / medium IOPS)
 # =============================================================================
 export REGION="eu-west-3"
-export INSTANCE_TYPE="c6i.8xlarge"
+export INSTANCE_TYPE="t2.2xlarge"
 export TAG_NAME="rch-rev"
 
 # =============================================================================
@@ -42,9 +44,9 @@ export SUBNET_CIDR="10.0.1.0/24"
 # REPOSITORY
 # =============================================================================
 export WORKSHOP_REPO_URL="https://github.com/sergioenterprisedb/workshop-k8s-cnpg.git"
+# Important : to be changed for test branches, could be automate. 
 export WORKSHOP_REPO_BRANCH="review/rchir"
 # On EC2 the workshop is cloned into ec2-user home by user-data.
-# Override this value if running as a different user.
 export WORKSHOP_HOME="${WORKSHOP_HOME:-/home/ec2-user/workshop-k8s-cnpg}"
 
 # =============================================================================
@@ -66,8 +68,6 @@ export S3_ENDPOINT_URL="http://minio.object-storage.svc.cluster.local:9000"
 # =============================================================================
 export GRAFANA_PORT="3010"
 export GRAFANA_ADMIN_USER="admin"
-# SECURITY: change GRAFANA_ADMIN_PASSWORD before running
-# in a real workshop environment.
 export GRAFANA_ADMIN_PASSWORD="password"
 
 # =============================================================================
@@ -80,8 +80,6 @@ export TTYD_PORT="4200"
 # =============================================================================
 export TOTAL_USERS=15
 export WORKSHOP_USER_PREFIX="user"
-# SECURITY: change WORKSHOP_USER_PASSWORD_PREFIX before running
-# in a real workshop environment.
 export WORKSHOP_USER_PASSWORD_PREFIX="password"
 
 # CNPG cluster parameters
